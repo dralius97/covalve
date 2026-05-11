@@ -2,7 +2,7 @@ from runtime.executor.schema import ArgsCtx, ReturnSchema, RuntimeMetadata
 import json
 from pydantic import ValidationError
 
-with open('./prompt/query_analis.txt') as f:
+with open('./prompt/query_analyze_prompt.txt') as f:
     query_analisis_prompt = f.read()
 
 

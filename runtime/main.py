@@ -54,7 +54,7 @@ async def runtime(query, session_id =None):
                 "event": result.event
             }
             break
-        current_state = schema[current_state]["transitions"][result.event]["to"]
+        current_state = schema["states"][current_state]["transitions"][result.event]["to"]
 
     return prev_context
 

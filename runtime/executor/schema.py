@@ -12,14 +12,8 @@ class QueryIntent(str, Enum):
     COMPARE  = "compare"
     SOURCE = "source"
 
-class DataSourceConstrain(str, Enum):
-    RAG = "RAG"
-    DB = "DB"
-
-
 class ContentUnit(BaseModel):
     intent: str
-    dataSource: list[DataSourceConstrain] | None = None
     composition_context: str
     confidence: float
 

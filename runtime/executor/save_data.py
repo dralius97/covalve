@@ -1,4 +1,5 @@
 from runtime.executor.schema import ArgsCtx, ReturnSchema
+from plugins.redis import redis_delete
 
 
 async def handle_save_data_to_persistence(ctx: ArgsCtx) -> ReturnSchema: 
@@ -13,8 +14,8 @@ async def handle_save_data_to_persistence(ctx: ArgsCtx) -> ReturnSchema:
         "data": ctx.context.tools_data
     }
     await call_db(data_content)
-    await redis.delete(f"{session_id}:ANALYZE")
-    await redis.delete(f"{session_id}:EXECUTE_TOOLS")
+    await redis_delete(f"{session_id}:ANALYZE")
+    await redis_delete(f"{session_id}:EXECUTE_TOOLS")
 
     return ReturnSchema(event="NEXT", context=ctx.context)
 
