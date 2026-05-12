@@ -21,10 +21,9 @@ async def handle_analyze(ctx: ArgsCtx) -> ReturnSchema:
         ## Current Query
         {ctx.context.query}
     """
-    result_from_llm = await callLLM.analyze(prompt)
         
     try:
-        metadata = RuntimeMetadata.model_validate_json(result_from_llm)
+        metadata: RuntimeMetadata = await callLLM.analyze(prompt)
         ctx.context.metadata = metadata
     except (ValidationError, json.JSONDecodeError) as e:
         ctx.context.error = {"type": "PARSE_ERROR", "detail": str(e)}

@@ -1,4 +1,4 @@
-from runtime.executor.schema import ArgsCtx, ReturnSchema, OutputSchema, OutputStatus
+from runtime.executor.schema import ArgsCtx, ReturnSchema, OutputSchema, OutputStatus, MainLLMResponse
 from plugins.registry import callLLM
 import json
 
@@ -28,12 +28,11 @@ async def handle_main_llm(ctx: ArgsCtx) -> ReturnSchema:
         {ctx.context.query}
 
     """ 
-    result_from_llm = await callLLM.generate(prompt)
-    parsed = json.loads(result_from_llm)
-    ctx.context.summarize = parsed["summarize"]
+    result_from_llm: MainLLMResponse = await callLLM.generate(prompt)
+    ctx.context.summarize = result_from_llm.summarize
 
     result = OutputSchema(
-        text=parsed["text"],
+        text=result_from_llm.text,
         attachment= None,
         status=OutputStatus.CLARIFICATION if ctx.context.is_clarification else OutputStatus.SUCCESS,
         traceId=ctx.context.traceId

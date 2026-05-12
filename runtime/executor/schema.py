@@ -12,6 +12,9 @@ class QueryIntent(str, Enum):
     COMPARE  = "compare"
     SOURCE = "source"
 
+class MainLLMResponse(BaseModel):
+    text: str
+    summarize: str
 class ContentUnit(BaseModel):
     intent: str
     composition_context: str
