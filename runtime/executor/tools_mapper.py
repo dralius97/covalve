@@ -1,5 +1,5 @@
 from collections import defaultdict
-from runtime.executor.schema import ArgsCtx, ReturnSchema
+from runtime.schema.schema import ArgsCtx, ReturnSchema
 import json
 
 with open("./jsonSchema/tools_schema.json") as data:

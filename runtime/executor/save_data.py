@@ -1,4 +1,4 @@
-from runtime.executor.schema import ArgsCtx, ReturnSchema, DataContent
+from runtime.schema.schema import ArgsCtx, ReturnSchema, DataContent
 from plugins.registry import redis, storage
 
 

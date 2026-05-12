@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from enum import Enum
 from typing import Optional, Any
 from datetime import datetime
@@ -15,10 +15,24 @@ class QueryIntent(str, Enum):
 class MainLLMResponse(BaseModel):
     text: str
     summarize: str
+
 class ContentUnit(BaseModel):
     intent: str
     composition_context: str
     confidence: float
+
+    @field_validator('confidence')
+    @classmethod
+    def validate_confidence(cls, v: float) -> float:
+        return round(max(0.0, min(1.0, float(v))), 2)
+
+    @field_validator('intent')
+    @classmethod
+    def validate_intent(cls, v: str) -> str:
+        valid = {intent.value for intent in QueryIntent}
+        if v.lower() not in valid:
+            raise ValueError(f"invalid intent: {v}. must be one of {valid}")
+        return v.lower()
 
 class ConvData(BaseModel):
     user: str

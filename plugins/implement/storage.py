@@ -1,5 +1,5 @@
 from plugins.base.storage import StorageBase
-from runtime.executor.schema import BackgroundUnit,DataContent
+from runtime.schema.schema import BackgroundUnit,DataContent
 
 class StorageClient(StorageBase):
     async def save_conv(self, content:DataContent):

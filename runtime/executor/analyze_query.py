@@ -1,4 +1,4 @@
-from runtime.executor.schema import ArgsCtx, ReturnSchema, RuntimeMetadata
+from runtime.schema.schema import ArgsCtx, ReturnSchema, RuntimeMetadata
 from pydantic import ValidationError
 from plugins.registry import callLLM
 import json

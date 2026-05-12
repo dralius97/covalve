@@ -1,4 +1,4 @@
-from runtime.executor.schema import ArgsCtx, ReturnSchema, OutputSchema, OutputStatus, MainLLMResponse
+from runtime.schema.schema import ArgsCtx, ReturnSchema, OutputSchema, OutputStatus, MainLLMResponse
 from plugins.registry import callLLM
 import json
 

@@ -1,7 +1,7 @@
 import json
 import hashlib
 from datetime import datetime
-from runtime.executor.schema import PipelineContext
+from runtime.schema.schema import PipelineContext
 from runtime.error.error_counter import handle_error_counter
 from runtime.executor.tools_runtime import handle_execute_tools
 from runtime.executor.analyze_query import handle_analyze

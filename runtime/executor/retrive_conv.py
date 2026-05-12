@@ -1,4 +1,4 @@
-from runtime.executor.schema import ArgsCtx, ReturnSchema, BackgroundUnit
+from runtime.schema.schema import ArgsCtx, ReturnSchema, BackgroundUnit
 from plugins.registry import storage
 
 async def handle_retrieve_previous_conversation(ctx: ArgsCtx) -> ReturnSchema: 

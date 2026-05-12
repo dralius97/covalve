@@ -1,0 +1,7 @@
+{
+    "ingest": {"priority": 0, "skippable": true, "intent": ["source"]},
+    "rag": {"priority": 1, "skippable": false, "intent": ["explain", "validate", "compare"]},
+    "db": {"priority": 1, "skippable": true, "intent": ["lookup", "operate", "validate", "compare"]},
+    "web_search": {"priority": 1, "skippable": true, "intent": ["source"]},
+    "visual": {"priority": 2, "skippable": true, "intent": ["operate", "compare"]}
+}

@@ -1,5 +1,5 @@
 from plugins.base.llm import LLMBase
-from runtime.executor.schema import MainLLMResponse, RuntimeMetadata
+from runtime.schema.schema import MainLLMResponse, RuntimeMetadata
 class LlmClient(LLMBase):
     async def analyze(self, prompt) -> RuntimeMetadata:
         raise NotImplementedError("LLM analyze not implemented yet")

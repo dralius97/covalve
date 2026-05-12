@@ -1,4 +1,4 @@
-from runtime.executor.schema import ArgsCtx, ReturnSchema, OutputSchema, OutputStatus
+from runtime.schema.schema import ArgsCtx, ReturnSchema, OutputSchema, OutputStatus
 
 async def handle_internal_server_error(ctx: ArgsCtx) -> ReturnSchema:
     ctx.context.response = OutputSchema(

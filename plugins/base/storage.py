@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from runtime.executor.schema import DataContent, BackgroundUnit
+from runtime.schema.schema import DataContent, BackgroundUnit
 
 class StorageBase(ABC):
     @abstractmethod
