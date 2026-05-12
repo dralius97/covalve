@@ -31,6 +31,11 @@ class RuntimeMetadata(BaseModel):
     content: list[ContentUnit]
     raw_query: str
 
+class OutputStatus(str, Enum):
+    SUCCESS = "success"
+    ERROR = "error"
+    CLARIFICATION = "clarification"
+
 
 class PipelineContext(BaseModel):
     query: str
@@ -57,12 +62,6 @@ class ArgsCtx(BaseModel):
     state: str
     context: PipelineContext
 
-
-class OutputStatus(str, Enum):
-    SUCCESS = "success"
-    ERROR = "error"
-    CLARIFICATION = "clarification"
-
 class AttachmentUnit(BaseModel):
     type: str
     data: str
@@ -72,3 +71,12 @@ class OutputSchema(BaseModel):
     attachment: Optional[list[AttachmentUnit]] = None
     status: OutputStatus
     traceId: str
+
+class DataContent(BaseModel):
+    session_id: str
+    metadata: list[ContentUnit] = []
+    user: str
+    assistance: str = ""
+    traceId: str
+    summarize: str | None = None
+    data: dict[str, Any] | list[Any] | None = None

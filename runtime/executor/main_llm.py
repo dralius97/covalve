@@ -1,4 +1,5 @@
 from runtime.executor.schema import ArgsCtx, ReturnSchema, OutputSchema, OutputStatus
+from plugins.registry import callLLM
 import json
 
 with open('./runtime/prompt/clarification_template.txt') as f:
@@ -27,7 +28,7 @@ async def handle_main_llm(ctx: ArgsCtx) -> ReturnSchema:
         {ctx.context.query}
 
     """ 
-    result_from_llm = await callLLM(prompt)
+    result_from_llm = await callLLM.generate(prompt)
     parsed = json.loads(result_from_llm)
     ctx.context.summarize = parsed["summarize"]
 

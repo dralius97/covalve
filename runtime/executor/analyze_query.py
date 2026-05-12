@@ -1,6 +1,7 @@
 from runtime.executor.schema import ArgsCtx, ReturnSchema, RuntimeMetadata
-import json
 from pydantic import ValidationError
+from plugins.registry import callLLM
+import json
 
 with open('./prompt/query_analyze_prompt.txt') as f:
     query_analisis_prompt = f.read()
@@ -20,7 +21,7 @@ async def handle_analyze(ctx: ArgsCtx) -> ReturnSchema:
         ## Current Query
         {ctx.context.query}
     """
-    result_from_llm = await callLLM(prompt)
+    result_from_llm = await callLLM.analyze(prompt)
         
     try:
         metadata = RuntimeMetadata.model_validate_json(result_from_llm)
