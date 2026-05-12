@@ -39,6 +39,15 @@ class OutputStatus(str, Enum):
     ERROR = "error"
     CLARIFICATION = "clarification"
 
+class AttachmentUnit(BaseModel):
+    type: str
+    data: str
+
+class OutputSchema(BaseModel):
+    text: str
+    attachment: Optional[list[AttachmentUnit]] = None
+    status: OutputStatus
+    traceId: str
 
 class PipelineContext(BaseModel):
     query: str
@@ -65,15 +74,6 @@ class ArgsCtx(BaseModel):
     state: str
     context: PipelineContext
 
-class AttachmentUnit(BaseModel):
-    type: str
-    data: str
-
-class OutputSchema(BaseModel):
-    text: str
-    attachment: Optional[list[AttachmentUnit]] = None
-    status: OutputStatus
-    traceId: str
 
 class DataContent(BaseModel):
     session_id: str
