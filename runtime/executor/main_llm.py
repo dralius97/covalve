@@ -2,10 +2,10 @@ from runtime.schema.schema import ArgsCtx, ReturnSchema, OutputSchema, OutputSta
 from plugins.registry import callLLM
 import json
 
-with open('./runtime/prompt/clarification_template.txt') as f:
+with open('./prompt/clarification_template.txt') as f:
     main_llm_clarification_prompt = f.read()
 
-with open('./runtime/prompt/main_llm_response.txt') as f:
+with open('./prompt/main_llm_response.txt') as f:
     main_llm_response_prompt = f.read()
 
 

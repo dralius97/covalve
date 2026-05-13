@@ -3,7 +3,7 @@ import hashlib
 from datetime import datetime
 from runtime.schema.schema import PipelineContext
 from runtime.error.error_counter import handle_error_counter
-from runtime.executor.tools_runtime import handle_execute_tools
+from runtime.executor.tools_executor import handle_execute_tools
 from runtime.executor.analyze_query import handle_analyze
 from runtime.error.error import handle_internal_server_error
 from runtime.executor.retrive_conv import handle_retrieve_previous_conversation
@@ -20,7 +20,7 @@ with open("./jsonSchema/schema.json") as data:
 
 
 handlers = {
-    "RETRIVE_PREVIOUSE_CONVERSATION": handle_retrieve_previous_conversation,
+    "RETRIVE_PREVIOUS_CONVERSATION": handle_retrieve_previous_conversation,
     "ANALYZE": handle_analyze,
     "ERROR_COUNTER": handle_error_counter,
     "INTERNAL_SERVER_ERROR": handle_internal_server_error,
@@ -38,10 +38,10 @@ async def runtime(query, session_id =None):
     if session_id  is None:
         session_id  = hashlib.sha256(f"{query}-{now}".encode('utf-8')).hexdigest()
     
-    current_state = schema["initial"]
+    current_state = schema["INITIAL"]
     prev_context = PipelineContext(is_error=False,query=query,session_id=session_id ,current_time=now,traceId=traceId)
 
-    while  current_state != schema["final"]:
+    while  current_state != schema["FINAL"]:
 
         result = await handlers[current_state](state = current_state, context = prev_context)
 
