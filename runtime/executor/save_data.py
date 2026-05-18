@@ -13,7 +13,10 @@ async def handle_save_data_to_persistence(ctx: ArgsCtx) -> ReturnSchema:
         summarize= ctx.context.summarize,
         data= ctx.context.tools_data
     )
-    await storage.save_conv(data_content)
+    try:
+        await storage.save_conv(data_content)
+    except Exception as e:
+        print(f"ERRROR: failed to save conversation traceid: {ctx.context.traceId} metadata: {ctx.context.metadata.model_dump()}")
     await redis.delete(f"{session_id}:ANALYZE")
     await redis.delete(f"{session_id}:EXECUTE_TOOLS")
 

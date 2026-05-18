@@ -1,9 +1,7 @@
 from collections import defaultdict
 from runtime.schema.schema import ArgsCtx, ReturnSchema
-import json
+from jsonSchema.jsonRegistry import tools_schema
 
-with open("./jsonSchema/tools_schema.json") as data:
-    tools_schema = json.load(data)
 
 
 async def handle_tools_mapper(ctx: ArgsCtx) -> ReturnSchema: 

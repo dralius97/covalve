@@ -1,10 +1,8 @@
 from runtime.schema.schema import ArgsCtx, ReturnSchema, RuntimeMetadata
 from pydantic import ValidationError
 from plugins.registry import callLLM
+from prompt.promptRegistry import query_analisis_prompt
 import json
-
-with open('./prompt/query_analyze_prompt.txt') as f:
-    query_analisis_prompt = f.read()
 
 
 async def handle_analyze(ctx: ArgsCtx) -> ReturnSchema: 
@@ -20,6 +18,9 @@ async def handle_analyze(ctx: ArgsCtx) -> ReturnSchema:
 
         ## Current Query
         {ctx.context.query}
+        
+        ## Current Date
+        {ctx.context.current_time.strftime('%Y-%m-%d')}
     """
         
     try:
