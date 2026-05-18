@@ -1,6 +1,9 @@
 import hashlib
+import time
+import asyncio
 from datetime import datetime
-from runtime.schema.schema import PipelineContext, ArgsCtx
+from runtime.schema.schema import PipelineContext, ArgsCtx, StateLog
+from plugins.registry import log
 from runtime.error.error_counter import handle_error_counter
 from runtime.executor.tools_executor import handle_execute_tools
 from runtime.executor.analyze_query import handle_analyze
@@ -37,23 +40,45 @@ async def runtime(query, session_id =None):
     
     current_state = core_schema["INITIAL"]
     prev_context = PipelineContext(is_error=False,query=query,session_id=session_id ,current_time=now,traceId=traceId)
-
     while  current_state != core_schema["FINAL"]:
-        print(current_state)
+        temp_log_data = {
+            "session_id": session_id,
+            "traceId": traceId,
+            "current_state": current_state,
+            "error": None
+        }
+        start = time.perf_counter()
+
         try:
             result = await handlers[current_state](ArgsCtx(state = current_state, context = prev_context))
         except Exception as e:
+            current_state = "INTERNAL_SERVER_ERROR"
+            temp_log_data["error"] = str(e)
             print(e)
-        prev_context = result.context
-        if result.event not in core_schema["states"][current_state]["transitions"]:
-            prev_context.is_error = True
-            prev_context.error = {
-                "type": "INVALID_EVENT",
-                "state": current_state,
-                "event": result.event
-            }
-            break
-        current_state = core_schema["states"][current_state]["transitions"][result.event]["to"]
+        else:
+            temp_log_data["event"] = result.event
+            if result.event not in core_schema["states"][current_state]["transitions"]:
+                prev_context.is_error = True
+                prev_context.error = {
+                    "type": "INVALID_EVENT",
+                    "state": current_state,
+                    "event": result.event
+                }
+            else:
+                prev_context = result.context
+                current_state = core_schema["states"][current_state]["transitions"][result.event]["to"]
+        
+        asyncio.create_task(log.state_log(StateLog( 
+            session_id=session_id,
+            traceId=traceId,
+            current_state=temp_log_data['current_state'],
+            event= temp_log_data.get("event", "NONE"),
+            error= temp_log_data['error'],
+            next_state=current_state,
+            time_executed=datetime.now(),
+            duration_ms = (time.perf_counter() - start) * 1000
+            )))
+        if prev_context.is_error: break
 
     return prev_context
 

@@ -105,3 +105,13 @@ class MCPContent(BaseModel):
 class MCPResponse(BaseModel):
     content: list[MCPContent]
     isError: bool = False
+
+class StateLog(BaseModel):
+    session_id: str 
+    traceId: str
+    current_state: str 
+    event: str 
+    next_state: str 
+    time_executed: datetime
+    duration_ms: str
+    error: Optional[str] = None
