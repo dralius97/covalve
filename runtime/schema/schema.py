@@ -113,5 +113,5 @@ class StateLog(BaseModel):
     event: str 
     next_state: str 
     time_executed: datetime
-    duration_ms: str
+    duration_ms: float
     error: Optional[str] = None

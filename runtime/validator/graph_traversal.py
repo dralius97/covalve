@@ -35,7 +35,6 @@ def validate_graph(schema) -> bool:
             reverse_graph[to_state].append(state)
 
     exist_state = set(schema["states"].keys())
-    print(reverse_graph)
     forward = bfs(graph, schema['INITIAL'])
     backward = bfs(reverse_graph, schema['FINAL'])
 

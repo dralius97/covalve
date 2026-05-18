@@ -54,7 +54,6 @@ async def runtime(query, session_id =None):
         except Exception as e:
             current_state = "INTERNAL_SERVER_ERROR"
             temp_log_data["error"] = str(e)
-            print(e)
         else:
             temp_log_data["event"] = result.event
             if result.event not in core_schema["states"][current_state]["transitions"]:

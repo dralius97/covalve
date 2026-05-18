@@ -1,5 +1,7 @@
 from runtime.schema.schema import ArgsCtx, ReturnSchema, DataContent
 from plugins.registry import redis, storage
+import logging
+logger = logging.getLogger(__name__)
 
 
 async def handle_save_data_to_persistence(ctx: ArgsCtx) -> ReturnSchema: 
@@ -16,7 +18,8 @@ async def handle_save_data_to_persistence(ctx: ArgsCtx) -> ReturnSchema:
     try:
         await storage.save_conv(data_content)
     except Exception as e:
-        print(f"ERRROR: failed to save conversation traceid: {ctx.context.traceId} metadata: {ctx.context.metadata.model_dump()}")
+        logger.warning("failed to save conversation traceId: %s", ctx.context.traceId)
+        logger.debug("failed metadata: %s", ctx.context.metadata.model_dump())
     await redis.delete(f"{session_id}:ANALYZE")
     await redis.delete(f"{session_id}:EXECUTE_TOOLS")
 

@@ -38,6 +38,11 @@ executor, reads the returned event, and transitions to the next state.
 Input → State A → executor_a() → event → State B → executor_b() → event → ... → Final
 ```
 
+If an executor throws an unexpected exception, the runtime gracefully degrades to
+`INTERNAL_SERVER_ERROR` rather than crashing. Every state transition is logged via
+the `LogBase` plugin — inject your own handler to route logs to stdout, a file, or
+an external service.
+
 ---
 
 ## Project Structure

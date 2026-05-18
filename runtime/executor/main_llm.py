@@ -39,7 +39,6 @@ async def handle_main_llm(ctx: ArgsCtx) -> ReturnSchema:
 
     """ 
 
-    print(prompt)
     result_from_llm: MainLLMResponse = await callLLM.generate(prompt)
     ctx.context.summarize = result_from_llm.summarize
 
