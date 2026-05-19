@@ -1,4 +1,4 @@
-from runtime.schema.schema import ArgsCtx, ReturnSchema, RuntimeMetadata
+from runtime.schema.schema import ArgsCtx, ReturnSchema, RuntimeMetadata, QueryIntent
 from pydantic import ValidationError
 from plugins.registry import callLLM
 from prompt.promptRegistry import query_analisis_prompt
@@ -32,10 +32,11 @@ async def handle_analyze(ctx: ArgsCtx) -> ReturnSchema:
         return ReturnSchema(event='INTERNAL_ERROR', context=ctx.context)
     
     confidences = [unit.confidence for unit in metadata.content]
+    intent = [unit.intent for unit in metadata.content]
     any_low = any(c < 0.5 for c in confidences)
     mean_low = sum(confidences) / len(confidences) < 0.75
-
-    if any_low or mean_low:
+    any_outofcontext = any(i == QueryIntent.OUT_OF_CONTEXT for i in intent)
+    if any_low or mean_low or any_outofcontext:
         return ReturnSchema(event='LOW_CONFIDENCE', context=ctx.context)
 
     return ReturnSchema(event= 'NEXT', context=ctx.context)

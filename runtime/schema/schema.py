@@ -11,6 +11,8 @@ class QueryIntent(str, Enum):
     VALIDATE = "validate"
     COMPARE  = "compare"
     SOURCE = "source"
+    OUT_OF_CONTEXT = "outofcontext"
+    CONVERSATION = "conversation"
 
 class MainLLMResponse(BaseModel):
     text: str
