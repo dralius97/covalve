@@ -31,6 +31,10 @@ def main():
         "SAVE_DATA_TO_PERSISTENCE": factory_save_data(deps),
     }
 
+    missing = set(core_schema["states"].keys()) - set(handlers.keys())
+    if missing:
+        raise ValueError(f"missing handlers: {missing}")
+
     async def runtime(query, session_id=None):
         now = datetime.now()
         traceId = hashlib.sha256(f"traceId-{query}-{now}".encode('utf-8')).hexdigest()

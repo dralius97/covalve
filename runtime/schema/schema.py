@@ -1,4 +1,5 @@
 from pydantic import BaseModel, field_validator
+from dataclasses import dataclass
 from enum import Enum
 from typing import Optional, Any
 from datetime import datetime
@@ -128,7 +129,8 @@ class StateLog(BaseModel):
     duration_ms: float
     error: Optional[str] = None
 
-class InfrastructureRegistry(BaseModel):
+@dataclass
+class InfrastructureRegistry:
     llm: Optional[LLMBase] = None
     storage: Optional[StorageBase] = None
     redis: Optional[RedisBase] = None
