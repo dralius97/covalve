@@ -2,6 +2,11 @@ from pydantic import BaseModel, field_validator
 from enum import Enum
 from typing import Optional, Any
 from datetime import datetime
+from plugins.base.storage import StorageBase
+from plugins.base.llm import LLMBase
+from plugins.base.log import LogBase
+from plugins.base.mcp import MCPBase
+from plugins.base.redis import RedisBase
 
 
 class QueryIntent(str, Enum):
@@ -122,3 +127,10 @@ class StateLog(BaseModel):
     time_executed: datetime
     duration_ms: float
     error: Optional[str] = None
+
+class InfrastructureRegistry(BaseModel):
+    llm: Optional[LLMBase] = None
+    storage: Optional[StorageBase] = None
+    redis: Optional[RedisBase] = None
+    mcp: Optional[MCPBase] = None
+    log: Optional[LogBase] = None
