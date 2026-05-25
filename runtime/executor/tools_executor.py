@@ -1,4 +1,4 @@
-from runtime.schema.schema import ArgsCtx, ReturnSchema
+from runtime.schema.schema import ArgsCtx, ReturnSchema,ExecutedTools
 from plugins.registry import mcp
 from jsonSchema.jsonRegistry import tools_schema
 import asyncio
@@ -20,26 +20,32 @@ def _get_context_for_tool(tool_name: str, metadata_content: list, tools_schema: 
 
 
 async def handle_execute_tools(ctx: ArgsCtx) -> ReturnSchema:
-    priority_group = ctx.context.tool_list
+    copy_context = ctx.context.model_copy(deep=True)
+    priority_group = copy_context.tool_list
     is_break = False
     event = "NEXT"
-    ctx.context.tools_data = {}
+    copy_context.tools_data = copy_context.tools_data or {}
     for current_priority in sorted(priority_group):
         tools = priority_group[current_priority]
+        tools_to_run = [
+            t for t in tools
+            if t["name"] not in copy_context.executed_tools.skipped_tools
+            and t["name"] not in copy_context.executed_tools.success_tools
+        ]
         results = await asyncio.gather(*[
             mcp.retrieve(tool["name"], {
-                "question":ctx.context.metadata.raw_query,
+                "question":copy_context.metadata.raw_query,
                 "context": _get_context_for_tool(
                 tool["name"], 
-                ctx.context.metadata.content,
+                copy_context.metadata.content,
                 tools_schema
                 ) 
-                }) for tool in tools
+                }) for tool in tools_to_run
         ], return_exceptions=True)
-        for tool, result in zip(tools, results):
+        for tool, result in zip(tools_to_run, results):
             if isinstance(result, Exception):
                 if tool["skippable"]:
-                    ctx.context.tool_list[current_priority].remove(tool)
+                    copy_context.executed_tools.skipped_tools.append(tool["name"])
                     continue
                 is_break = True
             else:
@@ -48,12 +54,12 @@ async def handle_execute_tools(ctx: ArgsCtx) -> ReturnSchema:
                     data = json.loads(text)
                 except json.JSONDecodeError:
                     data = text
-                ctx.context.tools_data[tool["name"]] = data
-                ctx.context.tool_list[current_priority].remove(tool)
+                copy_context.tools_data[tool["name"]] = data
+                copy_context.executed_tools.success_tools.append(tool["name"])
         if is_break is True:
             event = "INTERNAL_ERROR"
-            ctx.context.last_error_emitted = ctx.state
+            copy_context.last_error_emitted = ctx.state
             break
         
-    return ReturnSchema(event=event, context=ctx.context)
+    return ReturnSchema(event=event, context=copy_context)
 

@@ -65,6 +65,18 @@ class OutputSchema(BaseModel):
     status: OutputStatus
     traceId: str
 
+class MCPContent(BaseModel):
+    type: str  # "text", "image", dll
+    text: str
+
+class MCPResponse(BaseModel):
+    content: list[MCPContent]
+    isError: bool = False
+
+class ExecutedTools(BaseModel):
+    success_tools: list[str] = []
+    skipped_tools: list[str] = []
+
 class PipelineContext(BaseModel):
     query: str
     session_id: str
@@ -74,6 +86,7 @@ class PipelineContext(BaseModel):
     metadata: Optional[RuntimeMetadata] = None
     tool_list: Optional[dict[int, list[str]]] = None
     tools_data: Optional[dict[str, list[MCPContent]]] = None
+    executed_tools: ExecutedTools = ExecutedTools()
     last_error_emitted: Optional[str] = None
     error: Optional[dict] = None
     response: Optional[OutputSchema] = None
@@ -99,14 +112,6 @@ class DataContent(BaseModel):
     traceId: str
     summarize: str | None = None
     data: dict[str, Any] | list[Any] | None = None
-
-class MCPContent(BaseModel):
-    type: str  # "text", "image", dll
-    text: str
-
-class MCPResponse(BaseModel):
-    content: list[MCPContent]
-    isError: bool = False
 
 class StateLog(BaseModel):
     session_id: str 

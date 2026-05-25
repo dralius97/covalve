@@ -8,7 +8,7 @@ from runtime.error.error_counter import handle_error_counter
 from runtime.executor.tools_executor import handle_execute_tools
 from runtime.executor.analyze_query import handle_analyze
 from runtime.error.error import handle_internal_server_error
-from runtime.executor.retrive_conv import handle_retrieve_previous_conversation
+from runtime.executor.retrieve_conv import handle_retrieve_previous_conversation
 from runtime.executor.fallback import handle_fallback
 from runtime.executor.tools_mapper import handle_tools_mapper
 from runtime.executor.main_llm import handle_main_llm
@@ -20,7 +20,7 @@ from jsonSchema.jsonRegistry import core_schema
 
 
 handlers = {
-    "RETRIVE_PREVIOUS_CONVERSATION": handle_retrieve_previous_conversation,
+    "RETRIEVE_PREVIOUS_CONVERSATION": handle_retrieve_previous_conversation,
     "ANALYZE": handle_analyze,
     "ERROR_COUNTER": handle_error_counter,
     "INTERNAL_SERVER_ERROR": handle_internal_server_error,
@@ -63,6 +63,7 @@ async def runtime(query, session_id =None):
                     "state": current_state,
                     "event": result.event
                 }
+                current_state = "INTERNAL_SERVER_ERROR"
             else:
                 prev_context = result.context
                 current_state = core_schema["states"][current_state]["transitions"][result.event]["to"]
