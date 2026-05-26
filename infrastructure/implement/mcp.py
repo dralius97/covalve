@@ -1,5 +1,5 @@
-from plugins.base.mcp import MCPBase
-from runtime.schema.schema import MCPResponse, MCPContent
+from infrastructure.base.mcp import MCPBase
+from runtime.models.infra import MCPResponse, MCPContent
 
 class MCPClient(MCPBase):
     async def retrieve(self, tool_name:str, metadata:MCPContent) -> MCPResponse:

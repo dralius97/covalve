@@ -1,5 +1,5 @@
-from plugins.base.log import LogBase
-from runtime.schema.schema import StateLog
+from infrastructure.base.log import LogBase
+from runtime.models.logs import StateLog
 
 class LogClient(LogBase):
     async def state_log(self, ctx: StateLog): 

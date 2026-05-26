@@ -1,4 +1,6 @@
-from runtime.schema.schema import ArgsCtx, ReturnSchema, OutputSchema, OutputStatus, MainLLMResponse,InfrastructureRegistry
+from runtime.models.context import ArgsCtx, ReturnSchema, OutputSchema 
+from runtime.models.io import OutputStatus, MainLLMResponse
+from infrastructure.contract import InfrastructureRegistry
 from prompt.promptRegistry import main_llm_clarification_prompt,main_llm_response_prompt
 
 def factory_main_llm(deps: InfrastructureRegistry):

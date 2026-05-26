@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from runtime.schema.schema import RuntimeMetadata, MCPResponse
-from typing import Any
+from runtime.models.context import RuntimeMetadata 
+from runtime.models.infra import MCPResponse
 
 class MCPBase(ABC):
     @abstractmethod

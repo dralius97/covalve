@@ -1,5 +1,5 @@
 from typing import Any
-from plugins.base.redis import RedisBase
+from infrastructure.base.redis import RedisBase
 
 class RedisClient(RedisBase):
     async def set(self, key:str, value:Any):

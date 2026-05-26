@@ -1,4 +1,5 @@
-from runtime.schema.schema import ArgsCtx, ReturnSchema, InfrastructureRegistry
+from runtime.models.context import  ArgsCtx, ReturnSchema 
+from infrastructure.contract import InfrastructureRegistry
 
 def factory_error_counter(deps:InfrastructureRegistry):
     async def handle_error_counter(ctx: ArgsCtx) -> ReturnSchema: 

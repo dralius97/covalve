@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from runtime.schema.schema import MainLLMResponse, RuntimeMetadata
+from runtime.models.io import MainLLMResponse 
+from runtime.models.context import RuntimeMetadata
 
 class LLMBase(ABC):
     

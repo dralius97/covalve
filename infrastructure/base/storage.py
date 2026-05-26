@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from runtime.schema.schema import DataContent, BackgroundUnit
+from runtime.models.io import DataContent 
+from runtime.models.infra import BackgroundUnit
 
 class StorageBase(ABC):
     @abstractmethod

@@ -1,4 +1,6 @@
-from runtime.schema.schema import ArgsCtx, ReturnSchema, QueryIntent, InfrastructureRegistry
+from runtime.models.context import ArgsCtx, ReturnSchema 
+from runtime.models.metadata import QueryIntent 
+from infrastructure.contract import InfrastructureRegistry
 
 
 def factory_fallback(deps:InfrastructureRegistry):

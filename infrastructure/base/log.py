@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from runtime.schema.schema import StateLog
+from runtime.models.logs import StateLog
 
 class LogBase(ABC):
     @abstractmethod

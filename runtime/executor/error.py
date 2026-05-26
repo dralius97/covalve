@@ -1,4 +1,6 @@
-from runtime.schema.schema import ArgsCtx, ReturnSchema, OutputSchema, OutputStatus, InfrastructureRegistry
+from runtime.models.context import ArgsCtx, ReturnSchema, OutputSchema 
+from runtime.models.io import OutputStatus 
+from infrastructure.contract import InfrastructureRegistry
 
 def factory_internal_error(deps:InfrastructureRegistry):
     async def handle_internal_server_error(ctx: ArgsCtx) -> ReturnSchema:

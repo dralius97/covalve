@@ -1,4 +1,5 @@
-from runtime.schema.schema import ArgsCtx, ReturnSchema, BackgroundUnit, InfrastructureRegistry
+from runtime.models.context import ArgsCtx, ReturnSchema, BackgroundUnit
+from infrastructure.contract import InfrastructureRegistry
 
 def factory_retrieve_memmory(deps:InfrastructureRegistry):
     async def handle_retrieve_previous_conversation(ctx: ArgsCtx) -> ReturnSchema: 

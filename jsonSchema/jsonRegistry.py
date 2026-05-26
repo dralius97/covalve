@@ -1,5 +1,4 @@
 import json
-from runtime.schema.schema import JsonSchema
 from runtime.validator.graph_traversal import validate_graph
 
 

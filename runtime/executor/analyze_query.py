@@ -1,4 +1,6 @@
-from runtime.schema.schema import ArgsCtx, ReturnSchema, RuntimeMetadata, QueryIntent, InfrastructureRegistry
+from runtime.models.context import ArgsCtx, ReturnSchema, RuntimeMetadata
+from infrastructure.contract import InfrastructureRegistry
+from runtime.models.metadata import QueryIntent
 from pydantic import ValidationError
 from prompt.promptRegistry import query_analisis_prompt
 import json

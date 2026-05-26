@@ -1,5 +1,6 @@
 from collections import defaultdict
-from runtime.schema.schema import ArgsCtx, ReturnSchema, InfrastructureRegistry
+from runtime.models.context import  ArgsCtx, ReturnSchema 
+from infrastructure.contract import InfrastructureRegistry
 from jsonSchema.jsonRegistry import tools_schema
 
 
