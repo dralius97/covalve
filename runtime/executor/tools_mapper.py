@@ -1,11 +1,10 @@
 from collections import defaultdict
 from runtime.models.context import  ArgsCtx, ReturnSchema 
 from infrastructure.contract import InfrastructureRegistry
-from jsonSchema.jsonRegistry import tools_schema
-
 
 def factory_tools_mapper(deps: InfrastructureRegistry):
     async def handle_tools_mapper(ctx: ArgsCtx) -> ReturnSchema: 
+        tools_schema = ctx.schema.tools_schema
         copy_context = ctx.context.model_copy(deep=True)
         content = copy_context.metadata.content
         priority_groups = defaultdict(list)

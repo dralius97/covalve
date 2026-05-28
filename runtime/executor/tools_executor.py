@@ -1,6 +1,5 @@
 from runtime.models.context import  ArgsCtx, ReturnSchema
 from infrastructure.contract import InfrastructureRegistry
-from jsonSchema.jsonRegistry import tools_schema
 import asyncio
 import json
 
@@ -21,6 +20,7 @@ def factory_execute_tools(deps:InfrastructureRegistry):
 
 
     async def handle_execute_tools(ctx: ArgsCtx) -> ReturnSchema:
+        tools_schema = ctx.schema.tools_schema
         copy_context = ctx.context.model_copy(deep=True)
         priority_group = copy_context.tool_list
         is_break = False

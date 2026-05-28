@@ -1,10 +1,12 @@
-from datetime import datetime
 import hashlib
 import time
-from runtime.models.context import PipelineContext, ArgsCtx, ReturnSchema, STOP
+import asyncio
+from datetime import datetime
+from runtime.models.context import PipelineContext, ArgsCtx, ReturnSchema, STOP, SchemaCollections
 from infrastructure.contract import InfrastructureRegistry
 from runtime.models.logs import StateLog
-import asyncio
+from hook.executor import hook_executor
+from hook.registry import HookOn
 
 
 def _init_context(query, session_id) -> tuple[str, str, PipelineContext]:
@@ -43,29 +45,44 @@ def _fire_state_log(deps:InfrastructureRegistry, log_data: StateLog) -> None:
 
 
 
-def create_engine(schema:dict, handlers:dict, deps:InfrastructureRegistry):
+def create_engine(schemaCols:SchemaCollections, handlers:dict, hooks:dict, deps:InfrastructureRegistry):
+    core_schema = schemaCols.core_schema
+
     async def engine(query, session_id=None):
-        stop_state = [schema["FINAL"], STOP.INVALID_EVENT, STOP.HANDLER_ERROR]     
+        stop_state = [core_schema["FINAL"], STOP.INVALID_EVENT, STOP.HANDLER_ERROR, STOP.INTERCEPTOR_ERROR]     
         traceId, new_session_id, new_context = _init_context(query, session_id)
         running_context = new_context
 
-        current_state = schema["INITIAL"]   
-        cur_state_log = schema["INITIAL"]
+        current_state = core_schema["INITIAL"]   
+        active_state = core_schema["INITIAL"]
         while current_state not in stop_state:
-
-            args_ctx = ArgsCtx(state=current_state, context=running_context)
+            error_string = ""
+            args_ctx = ArgsCtx(state=current_state, context=running_context, schema=schemaCols)
             handler = handlers[current_state]
 
             start = time.perf_counter()
-            event_emmited, current_state, running_context, error = await _execute_state(schema["states"], handler, args_ctx)
+
+            hook_result = await hook_executor(HookOn.ENTER,core_schema["states"],current_state,hooks,running_context)
+            if hook_result.intercepted:
+                current_state = hook_result.to
+                error_string = hook_result.error
+                event_emmited = hook_result.event
+            else:
+                event_emmited, current_state, running_context, error_string = await _execute_state(core_schema["states"], handler, args_ctx)
+
+                hook_result = await hook_executor(HookOn.EXIT,core_schema["states"],active_state,hooks,running_context)
+                if hook_result.intercepted:
+                    current_state = hook_result.to
+                    error_string = hook_result.error
+                    event_emmited = hook_result.event
 
 
             log_data = StateLog(
                 session_id=new_session_id,
                 traceId=traceId,
-                current_state=cur_state_log,
+                current_state=active_state,
                 event= event_emmited,
-                error= error,
+                error= error_string,
                 next_state=current_state,
                 time_executed=datetime.now(),
                 duration_ms = (time.perf_counter() - start) * 1000
@@ -73,7 +90,7 @@ def create_engine(schema:dict, handlers:dict, deps:InfrastructureRegistry):
 
             _fire_state_log(deps, log_data)
 
-            cur_state_log = current_state
+            active_state = current_state
         return running_context
 
     return engine

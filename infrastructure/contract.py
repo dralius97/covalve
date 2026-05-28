@@ -17,3 +17,4 @@ class InfrastructureRegistry:
     mcp: Optional[MCPBase] = None
     log: Optional[LogBase] = None
     guardrail: Optional[GuardrailBase] = None
+    tools_map: Optional[dict] = None

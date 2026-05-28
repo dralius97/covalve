@@ -1,5 +1,6 @@
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+from dataclasses import dataclass
 from typing import Optional, Any
 from runtime.models.metadata import RuntimeMetadata, ContentUnit
 from runtime.models.io import OutputSchema
@@ -9,6 +10,7 @@ from enum import Enum
 class STOP(str,Enum):
     INVALID_EVENT =  "INVALID_EVENT"
     HANDLER_ERROR = "HANDLER_ERROR"
+    INTERCEPTOR_ERROR = "INTERCEPTOR_ERROR"
 
 class ExecutedTools(BaseModel):
     success_tools: list[str] = []
@@ -38,14 +40,21 @@ class ReturnSchema(BaseModel):
     event: str
     context: PipelineContext
 
+@dataclass
+class SchemaCollections:
+    core_schema: dict
+    tools_schema: Optional[dict] = None
+
 class ArgsCtx(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     state: str
     context: PipelineContext
+    schema: SchemaCollections
 
 class PipelineConfig(BaseModel):
     add_handlers: Optional[dict[str,Any]] = None
     overrides: Optional[dict[str,Any]] = None
-    plugins_schema: Optional[dict[str,Any]] = None
+    tools_schema: Optional[dict[str,Any]] = None
 
 
 class PluginsType(str,Enum):
