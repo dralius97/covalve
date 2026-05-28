@@ -3,7 +3,7 @@ from infrastructure.registry import deps
 from runtime.registry import handlersRegistry
 from runtime.validator.graph_traversal import validate_graph
 from jsonSchema.jsonRegistry import core_schema
-from runtime.engine import create_runtime
+from runtime.engine import create_engine
 
 base_schema = core_schema
 
@@ -37,6 +37,6 @@ def pipeline(schema:dict, config:PipelineConfig = None):
         node: factory(deps) for node, factory in handler_collection.items()
     }
 
-    runtime = create_runtime(schema, active_handler, deps)    
+    engine = create_engine(schema, active_handler, deps)    
 
-    return runtime
+    return engine

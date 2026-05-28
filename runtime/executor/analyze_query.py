@@ -37,8 +37,8 @@ def factory_analyzer(deps: InfrastructureRegistry):
         intent = [unit.intent for unit in metadata.content]
         any_low = any(c < 0.5 for c in confidences)
         mean_low = sum(confidences) / len(confidences) < 0.75
-        any_outofcontext = any(i == QueryIntent.OUT_OF_CONTEXT for i in intent)
-        if any_low or mean_low or any_outofcontext:
+        # any_outofcontext = any(i == QueryIntent.OUT_OF_CONTEXT for i in intent)
+        if any_low or mean_low:
             return ReturnSchema(event='LOW_CONFIDENCE', context=copy_context)
 
         return ReturnSchema(event= 'NEXT', context=copy_context)

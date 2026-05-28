@@ -5,7 +5,7 @@ from prompt.promptRegistry import main_llm_clarification_prompt,main_llm_respons
 
 def factory_main_llm(deps: InfrastructureRegistry):
     async def handle_main_llm(ctx: ArgsCtx) -> ReturnSchema:
-        copy_context = ctx.context.model_copy()
+        copy_context = ctx.context.model_copy(deep=True)
         tools_context = ""
         if copy_context.tools_data:
             for _, data in copy_context.tools_data.items():
@@ -16,29 +16,46 @@ def factory_main_llm(deps: InfrastructureRegistry):
                 )
                 tools_context += f"\n### Data untuk: '{intent_context}'\n{data}\n"
 
-        template_prompt = main_llm_clarification_prompt if copy_context.is_clarification else main_llm_response_prompt
+        template_prompt = main_llm_response_prompt
         prompt = f"""
             {template_prompt}
 
             ## Data Hasil Query
             {tools_context}
 
-            ## Clarification Context
-            {copy_context.fallback_content if copy_context.is_clarification else ""}
-
             ## Previous Conversation
             {copy_context.background}
 
             ## Intent Analysis
-            {[unit.model_dump() for unit in copy_context.metadata.content]}
+            {[unit.model_dump() for unit in copy_context.metadata.content] if copy_context.metadata else []}
 
             ## Question
             {copy_context.query}
 
             ## Current Date
             {copy_context.current_time.strftime('%Y-%m-%d')}
-
         """ 
+
+        if copy_context.is_clarification:
+            template_prompt = main_llm_clarification_prompt
+            prompt = f"""
+            {template_prompt}
+
+            ## Previous Conversation
+            {copy_context.background}
+
+
+            {"## Clarification Context\n" + str(copy_context.fallback_content) if copy_context.fallback_content else ""}
+            {"## Out Of Context Reason\n" + copy_context.guardrail_rejection if copy_context.guardrail_rejection else ""}
+            
+            
+            ## Question
+            {copy_context.query}
+
+            ## Current Date
+            {copy_context.current_time.strftime('%Y-%m-%d')}
+
+            """
 
         result_from_llm: MainLLMResponse = await deps.llm.generate(prompt)
         copy_context.summarize = result_from_llm.summarize

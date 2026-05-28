@@ -6,7 +6,7 @@ from infrastructure.contract import InfrastructureRegistry
 def factory_fallback(deps:InfrastructureRegistry):
     async def handle_fallback(ctx: ArgsCtx) -> ReturnSchema: 
         copy_context = ctx.context.model_copy(deep=True)
-        content = copy_context.metadata.content
+        content = copy_context.metadata.content if copy_context.metadata else [] 
         copy_context.is_clarification = True
         confidences = [unit.confidence for unit in content]
 
@@ -14,7 +14,7 @@ def factory_fallback(deps:InfrastructureRegistry):
 
         copy_context.fallback_content = [
             item for item in content
-            if item.confidence < threshold or item.intent == QueryIntent.OUT_OF_CONTEXT
+            if item.confidence < threshold
         ]
 
         return ReturnSchema(event="NEXT", context=copy_context)

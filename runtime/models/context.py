@@ -4,6 +4,11 @@ from typing import Optional, Any
 from runtime.models.metadata import RuntimeMetadata, ContentUnit
 from runtime.models.io import OutputSchema
 from runtime.models.infra import BackgroundUnit, MCPContent
+from enum import Enum
+
+class STOP(str,Enum):
+    INVALID_EVENT =  "INVALID_EVENT"
+    HANDLER_ERROR = "HANDLER_ERROR"
 
 class ExecutedTools(BaseModel):
     success_tools: list[str] = []
@@ -26,6 +31,7 @@ class PipelineContext(BaseModel):
     fallback_content: Optional[list[ContentUnit]] = None
     traceId: str
     is_clarification: bool = False
+    guardrail_rejection: Optional[str] = None
 
 
 class ReturnSchema(BaseModel):
@@ -39,4 +45,18 @@ class ArgsCtx(BaseModel):
 class PipelineConfig(BaseModel):
     add_handlers: Optional[dict[str,Any]] = None
     overrides: Optional[dict[str,Any]] = None
+    plugins_schema: Optional[dict[str,Any]] = None
 
+
+class PluginsType(str,Enum):
+    MIDDLEWARE =  "MIDDLEWARE"
+    HANGING = "HANGING"
+
+class PluginsOn(str,Enum):
+    ENTER = "ENTER",
+    EXIT = "EXIT"
+class PluginsConfig(BaseModel):
+    type: PluginsType
+    nodes: list[str]
+    on: PluginsOn
+    on_false: Optional[str] = None

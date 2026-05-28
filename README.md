@@ -169,7 +169,7 @@ class StorageClient(StorageBase):
         # use any database: PostgreSQL, MongoDB, SQLite, etc.
         ...
     
-    async def retrive_conv(self, session_id: str) -> BackgroundUnit | None:
+    async def retrieve_conv(self, session_id: str) -> BackgroundUnit | None:
         # return None if no previous conversation found
         ...
 ```

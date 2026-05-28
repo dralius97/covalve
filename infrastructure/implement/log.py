@@ -3,4 +3,4 @@ from runtime.models.logs import StateLog
 
 class LogClient(LogBase):
     async def state_log(self, ctx: StateLog): 
-        raise NotImplementedError("MCP client not implemented yet")
+        raise NotImplementedError("Log client not implemented yet")

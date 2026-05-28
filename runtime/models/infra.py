@@ -1,5 +1,6 @@
 from pydantic import BaseModel 
 from runtime.models.metadata import ContentUnit
+from typing import Optional
 
 class ConvData(BaseModel):
     user: str
@@ -18,3 +19,7 @@ class MCPContent(BaseModel):
 class MCPResponse(BaseModel):
     content: list[MCPContent]
     isError: bool = False
+
+class GuardRailResponse(BaseModel):
+    reason: Optional[str] = None
+    is_rejected: bool

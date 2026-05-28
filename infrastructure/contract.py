@@ -6,6 +6,8 @@ from infrastructure.base.llm import LLMBase
 from infrastructure.base.log import LogBase
 from infrastructure.base.mcp import MCPBase
 from infrastructure.base.redis import RedisBase
+from infrastructure.base.guardrails import GuardrailBase
+
 
 @dataclass
 class InfrastructureRegistry:
@@ -14,3 +16,4 @@ class InfrastructureRegistry:
     redis: Optional[RedisBase] = None
     mcp: Optional[MCPBase] = None
     log: Optional[LogBase] = None
+    guardrail: Optional[GuardrailBase] = None
