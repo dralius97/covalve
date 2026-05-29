@@ -1,4 +1,7 @@
 # covalve
+[![PyPI version](https://img.shields.io/pypi/v/covalve.svg)](https://pypi.org/project/covalve/)
+[![Python](https://img.shields.io/pypi/pyversions/covalve.svg)](https://pypi.org/project/covalve/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A code-based AI pipeline runtime built on Finite State Machine principles.
 Gives you full control over your AI pipeline — routing, error handling, and decision making
@@ -17,7 +20,12 @@ covalve takes the opposite approach:
 - **Bring your own infrastructure** — covalve defines the contracts, you bring the implementation
 
 ---
+## Installation
 
+```bash
+pip install covalve
+```
+---
 ## Requirements
 
 - Python 3.10+
