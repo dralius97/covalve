@@ -1,6 +1,6 @@
-# AI Pipeline Runtime
+# covalve
 
-A code-based AI orchestrator built on Deterministic Finite Automaton (DFA) principles.
+A code-based AI pipeline runtime built on Finite State Machine principles.
 Gives you full control over your AI pipeline — routing, error handling, and decision making
 are defined in code, not in prompts.
 
@@ -9,12 +9,12 @@ are defined in code, not in prompts.
 ## Philosophy
 
 Most AI frameworks delegate routing and decision making to LLMs automatically.
-This runtime takes the opposite approach:
+covalve takes the opposite approach:
 
 - **Deterministic skeleton** — flow, routing, and error handling are explicit and predictable
 - **Probabilistic flesh** — LLMs are only used where reasoning is genuinely needed
 - **Schema-driven** — pipeline behavior is defined in a JSON schema, not hardcoded
-- **Batteries included, but replaceable** — comes with a ready-to-use pipeline, every part is open for customization
+- **Bring your own infrastructure** — covalve defines the contracts, you bring the implementation
 
 ---
 
@@ -23,63 +23,74 @@ This runtime takes the opposite approach:
 - Python 3.10+
 - pydantic
 
-Infrastructure dependencies (Redis, database, LLM) are entirely up to your implementation.
-The runtime only defines the interfaces.
+Infrastructure dependencies (LLM, cache, database, MCP) are entirely up to your implementation.
+covalve only defines the interfaces.
 
 ---
 
-## How It Works
+## Quickstart
 
-The runtime executes a pipeline defined in `schema.json`. Each state in the schema maps
-to an executor function that you register. The runtime loops through states, calls the
-executor, reads the returned event, and transitions to the next state.
+### 1. Implement the infrastructure contracts
 
+covalve requires at minimum an LLM client. Implement the abstract base classes for
+whatever your pipeline needs:
+
+```python
+from covalve import LLMBase, CacheBase, MemoryStoreBase
+from covalve import RuntimeMetadata, MainLLMResponse, GenerateCondition
+
+class MyLLM(LLMBase):
+    async def analyze(self, context_payload: str) -> RuntimeMetadata:
+        # call any LLM — Gemini, OpenAI, Ollama, etc.
+        # must return RuntimeMetadata
+        ...
+
+    async def generate(self, context_payload: str, condition: GenerateCondition) -> MainLLMResponse:
+        # context_payload contains assembled conversation context
+        # condition tells you if this is a clarification or guardrail rejection
+        # prepend your own system prompt, then call your LLM
+        system_prompt = "You are a helpful assistant."
+        full_prompt = f"{system_prompt}\n\n{context_payload}"
+        ...
 ```
-Input → State A → executor_a() → event → State B → executor_b() → event → ... → Final
+
+### 2. Register your implementations
+
+```python
+from covalve import InfrastructureRegistry
+
+deps = InfrastructureRegistry(
+    llm=MyLLM(),
+    cache=MyCache(),
+    memory=MyStorage(),
+    tools=MyToolClient(),
+    log=MyLogger(),
+    guardrail=MyGuardrail()
+)
 ```
 
-If an executor throws an unexpected exception, the runtime gracefully degrades to
-`INTERNAL_SERVER_ERROR` rather than crashing. Every state transition is logged via
-the `LogBase` plugin — inject your own handler to route logs to stdout, a file, or
-an external service.
+### 3. Create and run the pipeline
 
----
+```python
+from covalve import pipeline, base_schema, PipelineConfig
 
-## Project Structure
+config = PipelineConfig(dependencies=deps)
+engine = pipeline(base_schema, config)
 
+result = await engine(query="your question here", session_id="optional-session-id")
+
+print(result.response.text)
+print(result.response.status)
 ```
-project/
-├── jsonSchema/
-│   ├── schema.json          # FSM pipeline definition
-│   └── tools_schema.json    # Tool mapping and priority
-├── plugins/
-│   ├── base/                # Abstract interfaces
-│   │   ├── llm.py
-│   │   ├── redis.py
-│   │   ├── storage.py
-│   │   └── mcp.py
-│   ├── implement/           # Your concrete implementations
-│   │   ├── llm.py
-│   │   ├── redis.py
-│   │   ├── storage.py
-│   │   └── mcp.py
-│   └── registry.py          # Register active implementations
-├── runtime/
-│   ├── main.py              # Runtime loop
-│   ├── executor/            # Built-in executors
-│   │   └── schema.py        # Pydantic models
-│   └── error/               # Error handling executors
-└── prompt/                  # LLM prompt templates
-```
+
+If `session_id` is not provided, one will be generated automatically.
 
 ---
 
 ## Built-in Pipeline
 
-The runtime ships with a complete conversational AI pipeline for query understanding
-and tool-based response generation. You can use it as-is or adapt it to your needs.
-
-### Flow Diagram
+covalve ships with a complete conversational AI pipeline for query understanding
+and tool-based response generation.
 
 ```mermaid
 stateDiagram-v2
@@ -100,23 +111,21 @@ MAIN_LLM --> SAVE_DATA_TO_PERSISTENCE : NEXT
 SAVE_DATA_TO_PERSISTENCE --> [OUTPUT] : NEXT
 ```
 
-### State Descriptions
+### State descriptions
 
 | State | Description |
 |---|---|
-| `RETRIEVE_PREVIOUS_CONVERSATION` | Loads conversation history from storage based on session ID |
-| `ANALYZE` | Classifies user query into structured intents using a small LLM |
-| `FALLBACK` | Prepares clarification context when query confidence is too low |
-| `TOOLS_MAPPER` | Maps intents to tools based on `tools_schema.json`, grouped by priority |
+| `RETRIEVE_PREVIOUS_CONVERSATION` | Loads conversation history from storage |
+| `ANALYZE` | Classifies user query into structured intents |
+| `FALLBACK` | Prepares clarification context when confidence is low |
+| `TOOLS_MAPPER` | Maps intents to tools based on tools_schema |
 | `EXECUTE_TOOLS` | Executes tools in priority order, parallel within same priority |
-| `MAIN_LLM` | Synthesizes tool results into a final response using a large LLM |
-| `ERROR_COUNTER` | Tracks retry attempts per error source, routes to retry or timeout |
+| `MAIN_LLM` | Synthesizes tool results into a final response |
+| `ERROR_COUNTER` | Tracks retry attempts, routes to retry or timeout |
 | `INTERNAL_SERVER_ERROR` | Prepares error response when retries are exhausted |
-| `SAVE_DATA_TO_PERSISTENCE` | Saves conversation data, cleans up Redis counter keys |
+| `SAVE_DATA_TO_PERSISTENCE` | Saves conversation data, cleans up cache keys |
 
-### Intent Types
-
-The built-in ANALYZE state classifies queries into these intent types:
+### Intent types
 
 | Intent | Description |
 |---|---|
@@ -127,194 +136,137 @@ The built-in ANALYZE state classifies queries into these intent types:
 | `compare` | Compare two or more entities |
 | `source` | Ingest or retrieve data from external sources |
 
-### Error Handling
+---
 
-| Category | Equivalent | Behavior |
+## Tools Schema
+
+tools_schema maps intents to tools and controls execution behavior.
+Required when your pipeline includes `TOOLS_MAPPER` or `EXECUTE_TOOLS` nodes.
+
+```json
+{
+    "my_tool": {
+        "priority": 1,
+        "skippable": true,
+        "intent": ["lookup", "operate"]
+    },
+    "another_tool": {
+        "priority": 2,
+        "skippable": false,
+        "intent": ["explain"]
+    }
+}
+```
+
+| Field | Type | Description |
 |---|---|---|
-| Low confidence | 4xx | Query is unclear — triggers clarification flow |
-| Internal error | 5xx | System failure — retries up to 3 times, then returns error response |
+| `priority` | int | Execution order — lower runs first, same priority runs in parallel |
+| `skippable` | bool | If `true` and tool fails, pipeline continues. If `false` and tool fails, triggers `INTERNAL_ERROR` |
+| `intent` | list[str] | Intents that map to this tool — must contain at least one item |
 
----
-
-## Implementing Plugins
-
-The runtime defines abstract interfaces for all infrastructure concerns.
-Implement them with any technology you prefer.
-
-### LLM
+Pass it via `PipelineConfig`:
 
 ```python
-# plugins/implement/llm.py
-from plugins.base.llm import LLMBase
+import json
 
-class LlmClient(LLMBase):
-    async def analyze(self, prompt: str) -> str:
-        # use any LLM: Gemini, OpenAI, Ollama, etc.
-        # must return clean JSON string matching RuntimeMetadata schema
-        ...
-    
-    async def generate(self, prompt: str) -> str:
-        # must return clean JSON string with keys: text, summarize
-        ...
-```
+with open("tools_schema.json") as f:
+    tools_schema = json.load(f)
 
-### Storage
-
-```python
-# plugins/implement/storage.py
-from plugins.base.storage import StorageBase
-
-class StorageClient(StorageBase):
-    async def save_conv(self, content: DataContent) -> None:
-        # use any database: PostgreSQL, MongoDB, SQLite, etc.
-        ...
-    
-    async def retrieve_conv(self, session_id: str) -> BackgroundUnit | None:
-        # return None if no previous conversation found
-        ...
-```
-
-### MCP Client
-
-```python
-# plugins/implement/mcp.py
-from plugins.base.mcp import MCPBase
-
-class MCPClient(MCPBase):
-    async def retrieve(self, tool_name: str) -> dict[str, Any]:
-        # must return {tool_name: data}
-        ...
-```
-
-### Redis
-
-```python
-# plugins/implement/redis.py
-from plugins.base.redis import RedisBase
-
-class RedisClient(RedisBase):
-    async def get(self, key: str) -> str | None: ...
-    async def set(self, key: str, value: Any) -> None: ...
-    async def delete(self, key: str) -> None: ...
-```
-
-Then register all implementations in `plugins/registry.py`:
-
-```python
-from plugins.implement.llm import LlmClient
-from plugins.implement.storage import StorageClient
-from plugins.implement.redis import RedisClient
-from plugins.implement.mcp import MCPClient
-
-llm = LlmClient()
-storage = StorageClient()
-redis = RedisClient()
-mcp_client = MCPClient()
+config = PipelineConfig(
+    dependencies=deps,
+    tools_schema=tools_schema
+)
 ```
 
 ---
+## Custom Pipeline
 
-## Customization
+You can replace the built-in schema with your own and register custom handlers.
 
-Every part of the built-in pipeline is open for modification.
-
-### Adding a New State
-
-1. Add the state to `schema.json`:
-
-```json
-"MY_STATE": {
-  "transitions": {
-    "NEXT": { "to": "NEXT_STATE" },
-    "ERROR": { "to": "ERROR_COUNTER" }
-  }
-}
-```
-
-2. Write the executor:
+### Adding a custom handler
 
 ```python
-async def handle_my_state(ctx: ArgsCtx) -> ReturnSchema:
-    # your logic here
-    return ReturnSchema(event="NEXT", context=ctx.context)
+from covalve import PipelineConfig, ArgsCtx, ReturnSchema
+
+def factory_my_state(deps):
+    async def handle_my_state(ctx: ArgsCtx) -> ReturnSchema:
+        copy_context = ctx.context.model_copy(deep=True)
+        # your logic here
+        return ReturnSchema(event="NEXT", context=copy_context)
+    return handle_my_state
+
+config = PipelineConfig(
+    dependencies=deps,
+    add_handlers={"MY_STATE": factory_my_state}
+)
 ```
 
-3. Register it in `runtime/main.py`:
+### Replacing a built-in handler
 
 ```python
-handlers = {
-    "MY_STATE": handle_my_state,
-    ...
-}
+config = PipelineConfig(
+    dependencies=deps,
+    overrides={"ANALYZE": factory_my_custom_analyzer}
+)
 ```
 
-### Adding a New Intent
-
-Add to `QueryIntent` enum in `runtime/executor/schema.py`:
-
-```python
-class QueryIntent(str, Enum):
-    EXPLAIN  = "explain"
-    # ... existing intents
-    MY_INTENT = "my_intent"  # add here
-```
-
-Then map it to tools in `tools_schema.json`:
-
-```json
-"my_tool": {
-  "priority": 1,
-  "skippable": true,
-  "intent": ["my_intent"]
-}
-```
-
-### Extending PipelineContext
-
-Add new fields to `PipelineContext` in `runtime/executor/schema.py`:
-
-```python
-class PipelineContext(BaseModel):
-    # ... existing fields
-    my_custom_field: Optional[str] = None
-```
-
-### Replacing an Executor
-
-Register your own executor in place of the built-in one:
-
-```python
-handlers = {
-    "ANALYZE": my_custom_analyze,  # replace built-in
-    ...
-}
-```
+`overrides` replaces an existing built-in handler. `add_handlers` adds a new one —
+it raises `ValueError` if the node name conflicts with an existing handler.
 
 ---
 
-## Running the Pipeline
+## Hook System
+
+Hooks let you attach cross-cutting behavior to any node without modifying executor logic.
+
+### Observer — fire and forget
 
 ```python
-from runtime.main import runtime
+from covalve import hooks, HookOn, ReadOnlyContext
 
-result = await runtime(query="your question here", session_id="optional-session-id")
-
-print(result.response.text)
-print(result.response.status)
+@hooks.observer(nodes=["ANALYZE", "MAIN_LLM"], on=HookOn.EXIT)
+async def log_state(ctx: ReadOnlyContext) -> None:
+    print(f"state exited, query: {ctx.query}")
 ```
 
-If `session_id` is not provided, one will be generated automatically.
+### Interceptor — blocking, single node
+
+```python
+@hooks.interceptor(node="GUARDRAIL", on=HookOn.ENTER, on_false="OUT_OF_SCOPE")
+async def check_domain(ctx: ReadOnlyContext) -> bool:
+    # return False to redirect to on_false event
+    return is_in_scope(ctx.query)
+```
+
+`on_false` is required on every interceptor — if you do not need to redirect,
+use an observer instead. `on_false` must be a valid transition event defined
+in your schema, validated at startup.
 
 ---
 
-## Output Schema
+## Infrastructure Contracts
+
+Implement these abstract base classes to wire covalve to your infrastructure:
+
+| Base class | Responsibility |
+|---|---|
+| `LLMBase` | Query analysis and response generation |
+| `MemoryStoreBase` | Save and retrieve conversation history |
+| `CacheBase` | Store retry counters and transient state |
+| `ToolClientBase` | Execute tool calls |
+| `LogBase` | Receive and store state transition logs |
+| `GuardrailBase` | Domain boundary enforcement (optional) |
+
+---
+
+## Output
 
 ```python
 class OutputSchema(BaseModel):
-    text: str                                 # response text
-    attachment: Optional[list[AttachmentUnit]] # optional attachments
-    status: OutputStatus                      # success | error | clarification
-    traceId: str                              # request trace ID for debugging
+    text: str
+    attachment: Optional[list[AttachmentUnit]]
+    status: OutputStatus          # success | error | clarification
+    traceId: str
 ```
 
 ---
