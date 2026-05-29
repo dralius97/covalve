@@ -1,5 +1,4 @@
 from covalve.runtime.models.context import ArgsCtx, ReturnSchema 
-from covalve.runtime.models.metadata import QueryIntent 
 from covalve.infrastructure.contract import InfrastructureRegistry
 
 

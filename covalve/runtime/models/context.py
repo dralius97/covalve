@@ -58,17 +58,3 @@ class PipelineConfig(BaseModel):
     add_handlers: Optional[dict[str,Any]] = None
     overrides: Optional[dict[str,Any]] = None
     tools_schema: Optional[dict[str,Any]] = None
-
-
-class PluginsType(str,Enum):
-    MIDDLEWARE =  "MIDDLEWARE"
-    HANGING = "HANGING"
-
-class PluginsOn(str,Enum):
-    ENTER = "ENTER",
-    EXIT = "EXIT"
-class PluginsConfig(BaseModel):
-    type: PluginsType
-    nodes: list[str]
-    on: PluginsOn
-    on_false: Optional[str] = None
