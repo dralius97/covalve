@@ -37,15 +37,16 @@ def factory_main_llm(deps: InfrastructureRegistry):
         """ 
 
         if copy_context.is_clarification:
+            clarification_section = f"## Clarification Context\n{copy_context.fallback_content}" if copy_context.fallback_content else ""
+            guardrail_section = f"## Out Of Context Reason\n{copy_context.guardrail_rejection}" if copy_context.guardrail_rejection else ""
             context_payload = f"""
 
             ## Previous Conversation
             {copy_context.background}
 
+            {clarification_section}
 
-            {"## Clarification Context\n" + str(copy_context.fallback_content) if copy_context.fallback_content else ""}
-            {"## Out Of Context Reason\n" + copy_context.guardrail_rejection if copy_context.guardrail_rejection else ""}
-            
+            {guardrail_section}
             
             ## Question
             {copy_context.query}
