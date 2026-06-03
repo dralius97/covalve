@@ -3,17 +3,29 @@ from covalve.runtime.models.io import OutputStatus, MainLLMResponse, GenerateCon
 from covalve.infrastructure.contract import InfrastructureRegistry
 
 def factory_main_llm(deps: InfrastructureRegistry):
+
+
+    def _get_context_tools(context, schema):
+        tools_context = ""
+        if not context.tools_data:
+            return tools_context
+        tools_schema = schema.tools_schema
+        for tool_name, content_blocks in context.tools_data.items():
+            tool_intents = tools_schema[tool_name]["intent"]
+            intent_context = next(
+                (unit.composition_context for unit in context.metadata.content
+                 if unit.intent in tool_intents),
+                context.query
+            )
+            text_parts = [b.text for b in content_blocks if b.type == "text"]
+            combined_text = "\n".join(text_parts)
+            tools_context += f"\n### Data for: '{intent_context}'\n{combined_text}\n"
+        return tools_context
+
+
     async def handle_main_llm(ctx: ArgsCtx) -> ReturnSchema:
         copy_context = ctx.context.model_copy(deep=True)
-        tools_context = ""
-        if copy_context.tools_data:
-            for _, data in copy_context.tools_data.items():
-                intent_context = next(
-                    (unit.composition_context for unit in copy_context.metadata.content 
-                     if unit.intent in ['operate', 'lookup', 'validate', 'compare']),
-                    copy_context.query
-                )
-                tools_context += f"\n### Data for: '{intent_context}'\n{data}\n"
+        tools_context = _get_context_tools(copy_context, ctx.schema_colls)
         is_rejected = True if copy_context.guardrail_rejection else False
         generate_condition = GenerateCondition(
             is_clarification=copy_context.is_clarification, 

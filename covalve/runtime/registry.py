@@ -7,6 +7,7 @@ from covalve.runtime.executor.fallback import factory_fallback
 from covalve.runtime.executor.tools_mapper import factory_tools_mapper
 from covalve.runtime.executor.main_llm import factory_main_llm
 from covalve.runtime.executor.save_data import factory_save_data
+from covalve.runtime.executor.guardrail import factory_guardrails
 
 
 
@@ -20,4 +21,5 @@ handlersRegistry = {
     "FALLBACK": factory_fallback,
     "MAIN_LLM": factory_main_llm,
     "SAVE_DATA_TO_PERSISTENCE": factory_save_data,
+    "GUARDRAIL": factory_guardrails
 }

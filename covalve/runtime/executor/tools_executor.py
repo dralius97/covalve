@@ -50,12 +50,8 @@ def factory_execute_tools(deps:InfrastructureRegistry):
                         continue
                     is_break = True
                 else:
-                    text = result.content[0].text
-                    try:
-                        data = json.loads(text)
-                    except json.JSONDecodeError:
-                        data = text
-                    copy_context.tools_data[tool["name"]] = data
+                    content = result.content
+                    copy_context.tools_data[tool["name"]] = content
                     copy_context.executed_tools.success_tools.append(tool["name"])
             if is_break is True:
                 event = "INTERNAL_ERROR"

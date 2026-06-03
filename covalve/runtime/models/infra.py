@@ -1,6 +1,6 @@
 from pydantic import BaseModel 
 from covalve.runtime.models.metadata import ContentUnit
-from typing import Optional
+from typing import Literal, Union, Optional, Any
 
 class ConvData(BaseModel):
     user: str
@@ -12,12 +12,29 @@ class BackgroundUnit(BaseModel):
     summarize : str
     conversation : list[ConvData]
 
-class MCPContent(BaseModel):
-    type: str 
+class TextContent(BaseModel):
+    type: Literal["text"]
     text: str
 
+class ImageContent(BaseModel):
+    type: Literal["image"]
+    data: str
+    mimeType: str
+
+class AudioContent(BaseModel):
+    type: Literal["audio"]
+    data: str
+    mimeType: str
+
+class EmbeddedResource(BaseModel):
+    type: Literal["resource"]
+    resource: dict[str, Any]
+
+ContentBlock = Union[TextContent, ImageContent, AudioContent, EmbeddedResource]
+
 class MCPResponse(BaseModel):
-    content: list[MCPContent]
+    content: list[ContentBlock]
+    structuredContent: Optional[dict[str, Any]] = None
     isError: bool = False
 
 class GuardRailResponse(BaseModel):

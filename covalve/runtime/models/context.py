@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Optional, Any
 from covalve.runtime.models.metadata import RuntimeMetadata, ContentUnit
 from covalve.runtime.models.io import OutputSchema
-from covalve.runtime.models.infra import BackgroundUnit, MCPContent
+from covalve.runtime.models.infra import BackgroundUnit, ContentBlock
 from covalve.infrastructure.contract import InfrastructureRegistry
 from enum import Enum
 
@@ -24,8 +24,8 @@ class PipelineContext(BaseModel):
     is_error: bool = False
     background: Optional[BackgroundUnit] = None
     metadata: Optional[RuntimeMetadata] = None
-    tool_list: Optional[dict[int, list[str]]] = None
-    tools_data: Optional[dict[str, list[MCPContent]]] = None
+    tool_list: Optional[dict[int, list[dict]]] = None
+    tools_data: Optional[dict[str, list[ContentBlock]]] = None
     executed_tools: ExecutedTools = ExecutedTools()
     last_error_emitted: Optional[str] = None
     error: Optional[dict] = None
