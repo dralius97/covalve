@@ -16,7 +16,7 @@ class InterceptorConfig(BaseModel):
     on_false: str
 
 class HookRegistry:
-    def __init__(self):
+    def __init__(self)->None:
         self._observer_registry: list[tuple[ObserverConfig, Callable]] = []
         self._interceptor_registry: list[tuple[InterceptorConfig, Callable]] = []
 
@@ -28,7 +28,7 @@ class HookRegistry:
 
     def interceptor(self, node: str, on: HookOn, on_false: str):
         def decorator(fn: Callable):
-            self._interceptor_registry.append((InterceptorConfig(nodes=node, on=on, on_false=on_false), fn))
+            self._interceptor_registry.append((InterceptorConfig(node=node, on=on, on_false=on_false), fn))
             return fn
         return decorator
     

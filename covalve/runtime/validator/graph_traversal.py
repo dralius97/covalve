@@ -1,6 +1,6 @@
 from collections import deque, defaultdict
 
-def bfs(graph, start):
+def bfs(graph:dict, start:str)-> set:
     visited = set()
     queue = deque([start])
 
@@ -19,7 +19,7 @@ def bfs(graph, start):
 
     
 
-def validate_graph(schema) -> bool:
+def validate_graph(schema:dict) -> bool:
     if "INITIAL" not in schema or "FINAL" not in schema:
         raise ValueError("schema.json missing INITIAL or FINAL key")
     if schema["INITIAL"] not in schema["states"]:

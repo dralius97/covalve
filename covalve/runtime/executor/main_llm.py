@@ -3,7 +3,11 @@ from covalve.runtime.models.io import OutputStatus, MainLLMResponse, GenerateCon
 from covalve.infrastructure.contract import InfrastructureRegistry
 
 def factory_main_llm(deps: InfrastructureRegistry):
-
+    if deps.llm is None:
+        raise ValueError("LLMBase is required for MAIN_LLM")
+    
+    llm = deps.llm 
+    
 
     def _get_context_tools(context, schema):
         tools_context = ""
@@ -68,7 +72,7 @@ def factory_main_llm(deps: InfrastructureRegistry):
 
             """
 
-        result_from_llm: MainLLMResponse = await deps.llm.generate(context_payload, generate_condition)
+        result_from_llm: MainLLMResponse = await llm.generate(context_payload, generate_condition)
         copy_context.summarize = result_from_llm.summarize
 
         result = OutputSchema(

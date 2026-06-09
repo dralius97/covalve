@@ -1,12 +1,13 @@
-from covalve.runtime.models.context import  ArgsCtx, ReturnSchema
+from covalve.runtime.models.context import  ArgsCtx, ReturnSchema, RuntimeMetadata
 from covalve.infrastructure.contract import InfrastructureRegistry
 import asyncio
-import json
-
-
 
 
 def factory_execute_tools(deps:InfrastructureRegistry):
+    if deps.tools is None:
+        raise ValueError("ToolClientBase is required for EXECUTE_TOOLS")
+    
+    deps_tools = deps.tools 
 
     def _get_context_for_tool(tool_name: str, metadata_content: list, tools_schema: dict) -> str:
         tool_intents = tools_schema[tool_name]["intent"]
@@ -23,6 +24,9 @@ def factory_execute_tools(deps:InfrastructureRegistry):
         tools_schema = ctx.schema_colls.tools_schema
         copy_context = ctx.context.model_copy(deep=True)
         priority_group = copy_context.tool_list
+        assert copy_context.metadata is not None
+        assert priority_group is not None
+        assert tools_schema is not None
         is_break = False
         event = "NEXT"
         copy_context.tools_data = copy_context.tools_data or {}
@@ -34,17 +38,18 @@ def factory_execute_tools(deps:InfrastructureRegistry):
                 and t["name"] not in copy_context.executed_tools.success_tools
             ]
             results = await asyncio.gather(*[
-                deps.tools.retrieve(tool["name"], {
-                    "question":copy_context.metadata.raw_query,
-                    "context": _get_context_for_tool(
-                    tool["name"], 
-                    copy_context.metadata.content,
-                    tools_schema
-                    ) 
-                    }) for tool in tools_to_run
+                deps_tools.retrieve(tool["name"], RuntimeMetadata(
+                    raw_query=copy_context.metadata.raw_query,
+                    context=_get_context_for_tool(
+                        tool["name"],
+                        copy_context.metadata.content,
+                        tools_schema
+                    ),
+                    content=copy_context.metadata.content
+                )) for tool in tools_to_run
             ], return_exceptions=True)
             for tool, result in zip(tools_to_run, results):
-                if isinstance(result, Exception):
+                if isinstance(result, BaseException):
                     if tool["skippable"]:
                         copy_context.executed_tools.skipped_tools.append(tool["name"])
                         continue

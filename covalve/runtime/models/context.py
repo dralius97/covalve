@@ -13,6 +13,9 @@ class STOP(str,Enum):
     HANDLER_ERROR = "HANDLER_ERROR"
     INTERCEPTOR_ERROR = "INTERCEPTOR_ERROR"
 
+class ActiveHook(BaseModel):
+    observer: dict
+    interceptor:dict
 class ExecutedTools(BaseModel):
     success_tools: list[str] = []
     skipped_tools: list[str] = []

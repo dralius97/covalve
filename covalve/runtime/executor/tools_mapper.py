@@ -5,8 +5,9 @@ from covalve.infrastructure.contract import InfrastructureRegistry
 def factory_tools_mapper(deps: InfrastructureRegistry):
     async def handle_tools_mapper(ctx: ArgsCtx) -> ReturnSchema: 
         tools_schema = ctx.schema_colls.tools_schema
+        assert tools_schema is not None
         copy_context = ctx.context.model_copy(deep=True)
-        content = copy_context.metadata.content
+        content = copy_context.metadata.content if copy_context.metadata else [] 
         priority_groups = defaultdict(list)
         for tool_name, tool_config in tools_schema.items():
             for intent in content:

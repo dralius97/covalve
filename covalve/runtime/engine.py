@@ -1,6 +1,7 @@
 import hashlib
 import time
 import asyncio
+from typing import Optional
 from datetime import datetime
 from covalve.runtime.models.context import PipelineContext, ArgsCtx, ReturnSchema, STOP, SchemaCollections
 from covalve.infrastructure.contract import InfrastructureRegistry
@@ -41,11 +42,12 @@ async def _execute_state(states:dict, handlers, args_ctx:ArgsCtx) -> tuple[str, 
 
         
 def _fire_state_log(deps:InfrastructureRegistry, log_data: StateLog) -> None:
-    asyncio.create_task(deps.log.state_log(log_data))
+    if deps.log:
+       asyncio.create_task(deps.log.state_log(log_data))
 
 
 
-def create_engine(schemaCols:SchemaCollections, handlers:dict, hooks:dict, deps:InfrastructureRegistry):
+def create_engine(schemaCols:SchemaCollections, handlers:dict, hooks:dict, deps:Optional[InfrastructureRegistry] = None):
     core_schema = schemaCols.core_schema
 
     async def engine(query, session_id=None):

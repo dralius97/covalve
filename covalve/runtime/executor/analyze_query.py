@@ -4,10 +4,14 @@ from pydantic import ValidationError
 import json
 
 def factory_analyzer(deps: InfrastructureRegistry):
+    if deps.llm is None:
+        raise ValueError("LLMBase is required for ANALYZE")
+    
+    llm = deps.llm 
     async def handle_analyze(ctx: ArgsCtx) -> ReturnSchema: 
         copy_context = ctx.context.model_copy(deep=True)
         prev_summarize = copy_context.background.summarize if copy_context.background else ""
-        prev_conv = [conv.model_dump(exclude={'data'}) for conv in copy_context.background.conversation] if ctx.context.background else []
+        prev_conv = [conv.model_dump(exclude={'data'}) for conv in copy_context.background.conversation] if copy_context.background else []
         context_payload = f"""
 
             ## Summarize previous conversation
@@ -24,7 +28,7 @@ def factory_analyzer(deps: InfrastructureRegistry):
         """
 
         try:
-            metadata: RuntimeMetadata = await deps.llm.analyze(context_payload)
+            metadata: RuntimeMetadata = await llm.analyze(context_payload)
             copy_context.metadata = metadata
         except (ValidationError, json.JSONDecodeError) as e:
             copy_context.error = {"type": "PARSE_ERROR", "detail": str(e)}

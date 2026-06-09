@@ -2,9 +2,9 @@ from covalve.runtime.models.context import PipelineConfig
 from covalve.runtime.registry import handlersRegistry
 from covalve.runtime.hook import hooks
 from collections import defaultdict
+from typing import Optional, cast
 
-
-def init_handlers(schema:dict, config: PipelineConfig = None) -> dict:
+def init_handlers(schema:dict, config: Optional[PipelineConfig] = None) -> dict:
     available_nodes = set(schema["states"].keys())
     handler_collection = {}
     for node in available_nodes:
@@ -23,6 +23,8 @@ def init_handlers(schema:dict, config: PipelineConfig = None) -> dict:
     if missing:
         raise ValueError(f"missing handlers: {missing}")
     deps = config.dependencies if config else None
+    if deps is None:
+        raise ValueError("InfrastructureRegistry is required")
     return {
         node: factory(deps) for node, factory in handler_collection.items()
     }
@@ -31,9 +33,10 @@ def init_hooks(schema: dict):
     states:dict = schema["states"]
     available_nodes = set(states.keys())
 
-    active_hook = {
-        "observer": defaultdict(lambda: defaultdict(list)),
-        "interceptor": defaultdict(lambda: defaultdict(list))
+    active_hook: dict[str, defaultdict[str, defaultdict[str, list]]] = {
+        "observer": defaultdict(lambda: cast(defaultdict[str, list], defaultdict(list))),
+        "interceptor": defaultdict(lambda: cast(defaultdict[str, list], defaultdict(list)))
+
     }
     for config, fn in hooks.observer_collection:
         nodes = config.nodes
@@ -60,8 +63,6 @@ def init_hooks(schema: dict):
     return active_hook
 
 def init_tools_schema(tools_schema:dict) -> None:
-    if tools_schema is None:
-        raise ValueError("tools_schema is required when using TOOLS_MAPPER or EXECUTE_TOOLS nodes.")
     for  tool_name,val in tools_schema.items():
         priority = val["priority"]
         skippable = val["skippable"]
