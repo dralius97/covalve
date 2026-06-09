@@ -51,28 +51,28 @@ def create_engine(schemaCols:SchemaCollections, handlers:dict, hooks:dict, deps:
     core_schema = schemaCols.core_schema
 
     async def engine(query, session_id=None):
-        stop_state = [core_schema["FINAL"], STOP.INVALID_EVENT, STOP.HANDLER_ERROR, STOP.INTERCEPTOR_ERROR]     
+        stop_state = [core_schema.FINAL, STOP.INVALID_EVENT, STOP.HANDLER_ERROR, STOP.INTERCEPTOR_ERROR]     
         traceId, new_session_id, new_context = _init_context(query, session_id)
         running_context = new_context
 
-        current_state = core_schema["INITIAL"]   
-        active_state = core_schema["INITIAL"]
+        current_state = core_schema.INITIAL
+        active_state = core_schema.INITIAL
         while current_state not in stop_state:
             error_string = ""
-            args_ctx = ArgsCtx(state=current_state, context=running_context, schema=schemaCols)
+            args_ctx = ArgsCtx(state=current_state, context=running_context, schema_colls=schemaCols)
             handler = handlers[current_state]
 
             start = time.perf_counter()
 
-            hook_result = await hook_executor(HookOn.ENTER,core_schema["states"],current_state,hooks,running_context)
+            hook_result = await hook_executor(HookOn.ENTER,core_schema.states,current_state,hooks,running_context)
             if hook_result.intercepted:
                 current_state = hook_result.to
                 error_string = hook_result.error
                 event_emmited = hook_result.event
             else:
-                event_emmited, current_state, running_context, error_string = await _execute_state(core_schema["states"], handler, args_ctx)
+                event_emmited, current_state, running_context, error_string = await _execute_state(core_schema.states, handler, args_ctx)
 
-                hook_result = await hook_executor(HookOn.EXIT,core_schema["states"],active_state,hooks,running_context)
+                hook_result = await hook_executor(HookOn.EXIT,core_schema.states,active_state,hooks,running_context)
                 if hook_result.intercepted:
                     current_state = hook_result.to
                     error_string = hook_result.error

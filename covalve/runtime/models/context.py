@@ -5,6 +5,7 @@ from typing import Optional, Any
 from covalve.runtime.models.metadata import RuntimeMetadata, ContentUnit
 from covalve.runtime.models.io import OutputSchema
 from covalve.runtime.models.infra import BackgroundUnit, ContentBlock
+from covalve.runtime.models.schema import CoreSchema
 from covalve.infrastructure.contract import InfrastructureRegistry
 from enum import Enum
 
@@ -38,6 +39,7 @@ class PipelineContext(BaseModel):
     traceId: str
     is_clarification: bool = False
     guardrail_rejection: Optional[str] = None
+    local: Optional[dict[str,Any]] = None
 
 
 class ReturnSchema(BaseModel):
@@ -46,7 +48,7 @@ class ReturnSchema(BaseModel):
 
 @dataclass
 class SchemaCollections:
-    core_schema: dict
+    core_schema: CoreSchema
     tools_schema: Optional[dict] = None
 
 class ArgsCtx(BaseModel):

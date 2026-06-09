@@ -1,11 +1,12 @@
 from covalve.runtime.models.context import PipelineConfig
+from covalve.runtime.models.schema import CoreSchema
 from covalve.runtime.registry import handlersRegistry
 from covalve.runtime.hook import hooks
 from collections import defaultdict
 from typing import Optional, cast
 
-def init_handlers(schema:dict, config: Optional[PipelineConfig] = None) -> dict:
-    available_nodes = set(schema["states"].keys())
+def init_handlers(schema:CoreSchema, config: Optional[PipelineConfig] = None) -> dict:
+    available_nodes = set(schema.states.keys())
     handler_collection = {}
     for node in available_nodes:
         if node in handlersRegistry:
@@ -19,7 +20,7 @@ def init_handlers(schema:dict, config: Optional[PipelineConfig] = None) -> dict:
             if key in handler_collection:
                 raise ValueError(f"add_handler conflict with existing: {key}")
             handler_collection[key] = factory
-    missing = set(schema["states"].keys()) - set(handler_collection.keys())
+    missing = set(schema.states.keys()) - set(handler_collection.keys())
     if missing:
         raise ValueError(f"missing handlers: {missing}")
     deps = config.dependencies if config else None
@@ -29,8 +30,8 @@ def init_handlers(schema:dict, config: Optional[PipelineConfig] = None) -> dict:
         node: factory(deps) for node, factory in handler_collection.items()
     }
 
-def init_hooks(schema: dict):
-    states:dict = schema["states"]
+def init_hooks(schema: CoreSchema):
+    states:dict = schema.states
     available_nodes = set(states.keys())
 
     active_hook: dict[str, defaultdict[str, defaultdict[str, list]]] = {
@@ -53,7 +54,7 @@ def init_hooks(schema: dict):
         if node not in available_nodes:
             raise ValueError(f"invalid nodes: Node {node} is not available on schema.")
         
-        available_event = set(states[node]["transitions"].keys())
+        available_event = set(states[node].transitions.keys())
         if on_false not in available_event:
             raise ValueError(f"invalid event: Event {on_false} is not available on {node} transitions.")
         

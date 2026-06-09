@@ -20,7 +20,7 @@ async def hook_executor(on:str, states, cur_state, hooks: dict, ctx:PipelineCont
 
             if not result: 
                 res.intercepted = True
-                res.to = states[cur_state]["transitions"][on_false]["to"]
+                res.to = states[cur_state].transitions[on_false].to
                 res.event = on_false
                 break
         except Exception as e:
