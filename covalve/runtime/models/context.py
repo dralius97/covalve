@@ -60,6 +60,4 @@ class ArgsCtx(BaseModel):
 class PipelineConfig(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     dependencies : Optional[InfrastructureRegistry] = None
-    add_handlers: Optional[dict[str,Any]] = None
-    overrides: Optional[dict[str,Any]] = None
     tools_schema: Optional[dict[str,Any]] = None

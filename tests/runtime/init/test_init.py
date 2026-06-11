@@ -20,6 +20,26 @@ def test_init_handlers_builds_handlers_and_requires_dependencies(monkeypatch):
 
     assert handlers["START"].startswith("handler-with-")
 
+def test_init_handlers_custom_node_conflicts_with_native(monkeypatch):
+    from covalve.runtime import init as init_module
+    from covalve.runtime.nodes.executor import CustomNodes
+    from covalve.runtime.nodes.schema import NodesConfig, ReadsList
+
+    fake_nodes = {"START": lambda deps: "conflict"}
+    monkeypatch.setattr(
+        CustomNodes, "get_nodes", lambda self: fake_nodes
+    )
+    monkeypatch.setitem(init_module.handlersRegistry, "START", lambda deps: "handler")
+
+    schema = CoreSchema.model_validate({
+        "INITIAL": "START",
+        "FINAL": "END",
+        "states": {"START": {"transitions": {"NEXT": {"to": "END"}}}}
+    })
+
+    with pytest.raises(ValueError, match="conflict"):
+        init_handlers(schema, make_pipeline_config(dependencies=InfrastructureRegistry()))
+
 
 def test_init_handlers_rejects_missing_dependencies(monkeypatch):
     from covalve.runtime import init as init_module
@@ -29,20 +49,6 @@ def test_init_handlers_rejects_missing_dependencies(monkeypatch):
 
     with pytest.raises(ValueError, match="InfrastructureRegistry is required"):
         init_handlers(schema, PipelineConfig())
-
-
-def test_init_handlers_add_handlers_conflict(monkeypatch):
-    from covalve.runtime import init as init_module
-
-    monkeypatch.setitem(init_module.handlersRegistry, "START", lambda deps: "handler")
-    config = make_pipeline_config(
-        dependencies=InfrastructureRegistry(),
-        add_handlers={"START": lambda deps: "conflict"},
-    )
-    schema = CoreSchema.model_validate({"INITIAL":"START","FINAL":"END","states": {"START": {"transitions": {"NEXT": {"to": "END"}}}}})
-
-    with pytest.raises(ValueError, match="add_handler conflict"):
-        init_handlers(schema, config)
 
 
 def test_init_hooks_registers_observer_and_interceptor(monkeypatch):

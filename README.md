@@ -20,12 +20,13 @@ covalve takes the opposite approach:
 - **Bring your own infrastructure** — covalve defines the contracts, you bring the implementation
 
 ---
+
 ## Installation
 
 ```bash
 pip install covalve
 ```
----
+
 ## Requirements
 
 - Python 3.10+
@@ -56,7 +57,6 @@ class MyLLM(LLMBase):
     async def generate(self, context_payload: str, condition: GenerateCondition) -> MainLLMResponse:
         # context_payload contains assembled conversation context
         # condition tells you if this is a clarification or guardrail rejection
-        # prepend your own system prompt, then call your LLM
         system_prompt = "You are a helpful assistant."
         full_prompt = f"{system_prompt}\n\n{context_payload}"
         ...
@@ -148,7 +148,7 @@ SAVE_DATA_TO_PERSISTENCE --> [OUTPUT] : NEXT
 
 ## Tools Schema
 
-tools_schema maps intents to tools and controls execution behavior.
+`tools_schema` maps intents to tools and controls execution behavior.
 Required when your pipeline includes `TOOLS_MAPPER` or `EXECUTE_TOOLS` nodes.
 
 ```json
@@ -187,39 +187,90 @@ config = PipelineConfig(
 ```
 
 ---
-## Custom Pipeline
 
-You can replace the built-in schema with your own and register custom handlers.
+## Custom Nodes
 
-### Adding a custom handler
+Custom nodes let you extend the pipeline with your own logic without touching
+covalve internals. The `@node.handler` decorator wraps your function and handles
+all `PipelineContext` read/write mechanics — you only work with typed, scoped
+context objects.
+
+### Declaring a custom node
 
 ```python
-from covalve import PipelineConfig, ArgsCtx, ReturnSchema
+from covalve import node, NodeContext, ReturnContext, ResponseFields, ReadsList
 
-def factory_my_state(deps):
-    async def handle_my_state(ctx: ArgsCtx) -> ReturnSchema:
-        copy_context = ctx.context.model_copy(deep=True)
-        # your logic here
-        return ReturnSchema(event="NEXT", context=copy_context)
-    return handle_my_state
+@node.handler(name="MY_CUSTOM_NODE", reads=[ReadsList.CONV, ReadsList.TOOLS])
+async def my_custom_node(ctx: NodeContext) -> ReturnContext:
+    query = ctx.readonly.query          # always available
+    background = ctx.conversation.background  # available because reads=[..CONV..]
+    tools_data = ctx.tools.tools_data   # available because reads=[..TOOLS..]
 
-config = PipelineConfig(
-    dependencies=deps,
-    add_handlers={"MY_STATE": factory_my_state}
+    # your logic here
+
+    return ReturnContext(
+        event="NEXT",
+        response=ResponseFields(summarize="custom summary")
+    )
+```
+
+`reads` declares which context categories your node needs access to. `readonly`
+is always injected — it does not need to be declared.
+
+| Category | Fields exposed |
+|---|---|
+| `ReadsList.CONV` | `background`, `metadata` |
+| `ReadsList.TOOLS` | `tools_data`, `executed_tools`, `tool_list` |
+| `ReadsList.RESPONSE` | `response`, `summarize`, `is_clarification`, `fallback_content`, `guardrail_rejection` |
+| `ReadsList.ERROR` | `error`, `last_error_emitted` |
+
+### Returning from a custom node
+
+`ReturnContext` carries the event and any context updates. Only non-`None` fields
+are merged back — existing context values for fields you did not set are preserved.
+
+```python
+return ReturnContext(
+    event="NEXT",
+    response=ResponseFields(
+        summarize="updated summary"
+        # response, is_clarification, etc. left None — not touched
+    ),
+    local={"my_key": "my_value"}   # custom-to-custom communication
 )
 ```
 
-### Replacing a built-in handler
+`local` is the designated space for custom node communication. Native executors
+never read or write this field.
 
-```python
-config = PipelineConfig(
-    dependencies=deps,
-    overrides={"ANALYZE": factory_my_custom_analyzer}
-)
+### Registering the node in your schema
+
+Declare the node in your `schema.json` and include it in the pipeline graph:
+
+```json
+{
+  "INITIAL": "RETRIEVE_PREVIOUS_CONVERSATION",
+  "FINAL": "OUTPUT_TO_USER",
+  "states": {
+    "RETRIEVE_PREVIOUS_CONVERSATION": {
+      "transitions": { "NEXT": { "to": "MY_CUSTOM_NODE" } }
+    },
+    "MY_CUSTOM_NODE": {
+      "transitions": { "NEXT": { "to": "ANALYZE" } }
+    }
+  }
+}
 ```
 
-`overrides` replaces an existing built-in handler. `add_handlers` adds a new one —
-it raises `ValueError` if the node name conflicts with an existing handler.
+covalve resolves `MY_CUSTOM_NODE` from the decorator registry automatically at
+startup — no additional registration in `PipelineConfig` is needed.
+
+### Validation at startup
+
+- Functions decorated with `@node.handler` that do not return `ReturnContext`
+  raise `TypeError` at decoration time — before the pipeline starts
+- Custom node names that conflict with native handlers raise `ValueError`
+  at pipeline initialization
 
 ---
 

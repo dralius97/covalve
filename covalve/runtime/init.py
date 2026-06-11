@@ -1,25 +1,26 @@
 from covalve.runtime.models.context import PipelineConfig
 from covalve.runtime.models.schema import CoreSchema
 from covalve.runtime.registry import handlersRegistry
+from covalve.runtime.nodes import node as customNode
 from covalve.runtime.hook import hooks
+from covalve.runtime.nodes.executor import CustomNodes
 from collections import defaultdict
 from typing import Optional, cast
 
 def init_handlers(schema:CoreSchema, config: Optional[PipelineConfig] = None) -> dict:
     available_nodes = set(schema.states.keys())
+    custom_nodes = CustomNodes(customNode).get_nodes()
     handler_collection = {}
     for node in available_nodes:
         if node in handlersRegistry:
             handler_collection[node] = handlersRegistry[node]
-    if config and config.overrides:
-        for key, factory in config.overrides.items():
 
+    for key, factory in custom_nodes.items():
+        if key in handler_collection:
+            raise ValueError(f"add_handler conflict with existing: {key}")
+        if key in available_nodes:
             handler_collection[key] = factory
-    if config and config.add_handlers:
-        for key, factory in config.add_handlers.items():
-            if key in handler_collection:
-                raise ValueError(f"add_handler conflict with existing: {key}")
-            handler_collection[key] = factory
+
     missing = set(schema.states.keys()) - set(handler_collection.keys())
     if missing:
         raise ValueError(f"missing handlers: {missing}")

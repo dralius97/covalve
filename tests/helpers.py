@@ -119,14 +119,10 @@ def make_args_ctx(
 
 def make_pipeline_config(
     dependencies: InfrastructureRegistry | None = None,
-    add_handlers: dict[str, Any] | None = None,
-    overrides: dict[str, Any] | None = None,
     tools_schema: dict[str, Any] | None = None,
 ) -> PipelineConfig:
     return PipelineConfig(
         dependencies=dependencies,
-        add_handlers=add_handlers,
-        overrides=overrides,
         tools_schema=tools_schema,
     )
 
