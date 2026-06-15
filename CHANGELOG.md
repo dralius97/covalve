@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.2] - 2026-06-15
+
+### Changed
+- Expanded the package root API exports in `covalve/__init__.py` to expose
+  additional runtime models and node schema helpers for direct imports
+
 ## [0.2.1] - 2026-06-15
 
 ### Added
