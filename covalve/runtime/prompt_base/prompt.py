@@ -1,15 +1,17 @@
 from covalve.runtime.models.metadata import RuntimeMetadata
 import json
+from pathlib import Path
 
 
 class BasePrompt:
     def __init__(self):
+        self.BASE_DIR = Path(__file__).parent
         self._analyzer = ""
         self.init()
 
     def init(self):
         analyzer_schema = RuntimeMetadata.model_json_schema()
-        with open('query_analyze_prompt.txt') as f:
+        with open(self.BASE_DIR / 'query_analyze_prompt.txt') as f:
             _base_prompt = f.read() 
 
         self._analyzer = f"""
