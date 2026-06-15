@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.2.1] - 2026-06-15
+
+### Added
+- Structured query analysis fields for `metric`, `entities`, and `filters`
+  in `RuntimeMetadata` / `ContentUnit`
+- Query analysis prompt base loader in `covalve.runtime.prompt_base.prompt`
+- Shared analyzer prompt template under `covalve/runtime/prompt_base/`
+
+### Changed
+- `analyze_query` now injects the shared analyzer prompt and validates the
+  returned payload with `RuntimeMetadata.model_validate(...)`
+- Query analysis examples and schema guidance were expanded to cover
+  aggregation, negation, and conversational cases
+- `pyproject.toml` version bumped to `0.2.1`
+
 ## [0.2.0]
 
 ### Added

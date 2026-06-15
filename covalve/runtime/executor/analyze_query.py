@@ -1,6 +1,7 @@
 from covalve.runtime.models.context import ArgsCtx, ReturnSchema, RuntimeMetadata
 from covalve.infrastructure.contract import InfrastructureRegistry
 from pydantic import ValidationError
+from covalve.runtime.prompt_base.prompt import Prompt
 import json
 
 def factory_analyzer(deps: InfrastructureRegistry):
@@ -13,6 +14,7 @@ def factory_analyzer(deps: InfrastructureRegistry):
         prev_summarize = copy_context.background.summarize if copy_context.background else ""
         prev_conv = [conv.model_dump(exclude={'data'}) for conv in copy_context.background.conversation] if copy_context.background else []
         context_payload = f"""
+            {Prompt.get_analyze_prompt()}
 
             ## Summarize previous conversation
             {prev_summarize}
@@ -28,8 +30,8 @@ def factory_analyzer(deps: InfrastructureRegistry):
         """
 
         try:
-            metadata: RuntimeMetadata = await llm.analyze(context_payload)
-            copy_context.metadata = metadata
+            metadata = await llm.analyze(context_payload)
+            copy_context.metadata = RuntimeMetadata.model_validate(metadata)
         except (ValidationError, json.JSONDecodeError) as e:
             copy_context.error = {"type": "PARSE_ERROR", "detail": str(e)}
             copy_context.last_error_emitted = ctx.state

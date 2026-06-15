@@ -1,19 +1,58 @@
 from pydantic import BaseModel, field_validator
 from enum import Enum
+from typing import Any, Optional
+
 
 class QueryIntent(str, Enum):
-    EXPLAIN  = "explain"
-    LOOKUP   = "lookup"
-    OPERATE  = "operate"
-    VALIDATE = "validate"
-    COMPARE  = "compare"
-    SOURCE = "source"
+    EXPLAIN      = "explain"
+    LOOKUP       = "lookup"
+    OPERATE      = "operate"
+    VALIDATE     = "validate"
+    COMPARE      = "compare"
+    SOURCE       = "source"
     CONVERSATION = "conversation"
+
+
+class FilterOperator(str, Enum):
+    EQ          = "eq"
+    NEQ         = "neq"
+    GT          = "gt"
+    GTE         = "gte"
+    LT          = "lt"
+    LTE         = "lte"
+    IN          = "in"
+    NOT_IN      = "not_in"
+    LIKE        = "like"
+    IS_NULL     = "is_null"
+    IS_NOT_NULL = "is_not_null"
+
+
+class Metric(str, Enum):
+    COUNT = "count"
+    SUM   = "sum"
+    AVG   = "avg"
+    MAX   = "max"
+    MIN   = "min"
+
+
+class FilterUnit(BaseModel):
+    attribute: str
+    value: Any
+    operator: FilterOperator
+
+
+class EntityUnit(BaseModel):
+    type: str
+    value: str
+
 
 class ContentUnit(BaseModel):
     intent: str
     composition_context: str
     confidence: float
+    metric: Optional[Metric] = None
+    entities: list[EntityUnit] = []
+    filters: list[FilterUnit] = []
 
     @field_validator('confidence')
     @classmethod
@@ -27,6 +66,7 @@ class ContentUnit(BaseModel):
         if v.lower() not in valid:
             raise ValueError(f"invalid intent: {v}. must be one of {valid}")
         return v.lower()
+
 
 class RuntimeMetadata(BaseModel):
     content: list[ContentUnit]
