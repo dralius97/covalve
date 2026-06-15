@@ -47,7 +47,7 @@ class EntityUnit(BaseModel):
 
 
 class ContentUnit(BaseModel):
-    intent: str
+    intent: QueryIntent
     composition_context: str
     confidence: float
     metric: Optional[Metric] = None

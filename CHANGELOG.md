@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.2.6] - 2026-06-15
+
+### bugfix
+- fix typo conversational -> conversation at prompt base for analyzer nodes
+
+
+## [0.2.5] - 2026-06-15
+
+### bugfix
+- pydantic extraction for schema transition in engine.py
+- handle None context at merging metadata from custom node
+
+## [0.2.3] - 2026-06-15
+
+### bugfix
+- Use pathlib for BasePrompt
+
 ## [0.2.2] - 2026-06-15
 
 ### Changed

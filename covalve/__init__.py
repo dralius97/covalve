@@ -1,4 +1,4 @@
-__version__= "0.2.5"
+__version__= "0.2.6"
 
 # entry point
 from covalve.runtime.pipeline import pipeline, base_schema

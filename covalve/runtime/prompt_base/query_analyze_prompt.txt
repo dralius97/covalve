@@ -20,7 +20,7 @@ You are a query analysis engine. Your job is to classify the user's question int
 - validate        : check if something is valid, allowed, compliant, or meets a condition
 - compare         : compare two or more entities, options, or time periods
 - source          : ingest, retrieve, or reference data from external sources
-- conversational  : greetings, acknowledgements, small talk with no information need
+- conversation  : greetings, acknowledgements, small talk with no information need
 
 ## Semantic Extraction
 
