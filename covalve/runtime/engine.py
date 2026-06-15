@@ -26,12 +26,12 @@ async def _execute_state(states:dict, handlers, args_ctx:ArgsCtx) -> tuple[str, 
     try:
         result:ReturnSchema = await handlers(args_ctx)
         running_context: PipelineContext = result.context
-        if result.event not in states[args_ctx.state]["transitions"] and not result.event == STOP.HANDLER_ERROR:
+        if result.event not in states[args_ctx.state].transitions and not result.event == STOP.HANDLER_ERROR:
             event_emmited = result.event
             current_state = STOP.INVALID_EVENT
         else:
             event_emmited = result.event
-            current_state = states[args_ctx.state]["transitions"][event_emmited]["to"]
+            current_state =  states[args_ctx.state].transitions[event_emmited].to
     except Exception as e:
         event_emmited = STOP.HANDLER_ERROR 
         running_context = args_ctx.context

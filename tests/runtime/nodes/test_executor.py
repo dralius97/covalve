@@ -89,6 +89,20 @@ def test_merge_return_context_merges_local_instead_of_replacing_it():
     assert merged.local == {"key_a": 1, "key_b": 2}
 
 
+def test_merge_return_context_initializes_local_when_missing():
+    custom_nodes = _make_custom_nodes()
+    ctx = make_pipeline_context(local=None)
+
+    result = ReturnContext(
+        event="NEXT",
+        local={"key_b": 2},
+    )
+
+    merged = custom_nodes._merge_return_context(result, ctx)
+
+    assert merged.local == {"key_b": 2}
+
+
 def test_build_node_context_always_includes_readonly_and_omits_unread_categories():
     custom_nodes = _make_custom_nodes()
     ctx = make_pipeline_context()

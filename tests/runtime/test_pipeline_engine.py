@@ -3,8 +3,8 @@ from collections import defaultdict
 import pytest
 
 from covalve.infrastructure.contract import InfrastructureRegistry
-from covalve.runtime.engine import create_engine
-from covalve.runtime.models.context import ReturnSchema, SchemaCollections
+from covalve.runtime.engine import _execute_state, create_engine
+from covalve.runtime.models.context import ArgsCtx, ReturnSchema, SchemaCollections
 from covalve.runtime.pipeline import pipeline
 from tests.helpers import (
     assert_context_local_untouched,
@@ -32,6 +32,30 @@ async def test_create_engine_runs_simple_graph():
     assert result.query == "hello"
     assert result.session_id is not None
     assert_context_local_untouched(result)
+
+
+@pytest.mark.asyncio
+async def test_execute_state_uses_stateconfig_transitions_as_models():
+    schema = make_minimal_schema()
+    args_ctx = ArgsCtx(
+        state="START",
+        context=make_pipeline_context(),
+        schema_colls=SchemaCollections(core_schema=schema, tools_schema=None),
+    )
+
+    async def start_handler(ctx):
+        return ReturnSchema(event="NEXT", context=ctx.context.model_copy(deep=True))
+
+    event, current_state, running_context, error = await _execute_state(
+        schema.states,
+        start_handler,
+        args_ctx,
+    )
+
+    assert event == "NEXT"
+    assert current_state == "END"
+    assert running_context.query == "what is the answer"
+    assert error == ""
 
 
 def test_pipeline_wires_validation_handlers_and_engine(monkeypatch):

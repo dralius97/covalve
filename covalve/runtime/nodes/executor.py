@@ -102,7 +102,10 @@ class CustomNodes:
                     copy_context[field] = incoming
 
         if result.local is not None:
-            copy_context["local"] = {**copy_context["local"],**result.local}
+            if copy_context["local"] is None:
+                copy_context["local"] = result.local
+            else:
+                copy_context["local"] = {**copy_context["local"],**result.local}
 
         return PipelineContext.model_validate(copy_context)
 
