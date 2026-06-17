@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.7] - 2026-06-17
+
+### bugfix
+- intent validation convert to lowercase to solve case sensitive issue
+
+
 ## [0.2.6] - 2026-06-15
 
 ### bugfix

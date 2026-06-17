@@ -41,8 +41,13 @@ class FilterUnit(BaseModel):
     operator: FilterOperator
 
 
+class EntityType(str, Enum):
+    SUBJECT = "subject"
+    OBJECT  = "object"
+    DOMAIN  = "domain"
+
 class EntityUnit(BaseModel):
-    type: str
+    type: EntityType
     value: str
 
 
@@ -65,7 +70,7 @@ class ContentUnit(BaseModel):
         valid = {intent.value for intent in QueryIntent}
         if v.lower() not in valid:
             raise ValueError(f"invalid intent: {v}. must be one of {valid}")
-        return v.lower()
+        return QueryIntent(v.lower())
 
 
 class RuntimeMetadata(BaseModel):
