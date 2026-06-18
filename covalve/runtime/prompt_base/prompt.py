@@ -3,10 +3,21 @@ import json
 from pathlib import Path
 
 
+_MAIN_LLM_SYSTEM = """You are an analytical assistant. Your job is to answer the user's question based strictly on the provided data.
+
+## Rules
+- Answer only based on the data provided, do not fabricate information
+- If data is insufficient to answer, say so clearly
+- Be concise and accurate
+- Use the same language as the user's question
+"""
+
+
 class BasePrompt:
     def __init__(self):
         self.BASE_DIR = Path(__file__).parent
         self._analyzer = ""
+        self._main_llm = _MAIN_LLM_SYSTEM
         self.init()
 
     def init(self):
@@ -25,5 +36,9 @@ class BasePrompt:
     def get_analyze_prompt(self) -> str:
         analyzer:str = self._analyzer
         return analyzer
-    
+
+    def get_main_llm_system(self) -> str:
+        main_llm:str = self._main_llm
+        return main_llm
+
 Prompt = BasePrompt()

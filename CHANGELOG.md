@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.8] - 2026-06-18
+### Changed
+- Split `LLMBase.analyze` and `LLMBase.generate` into explicit `system` and `user` prompts.
+- Separated analyzer and main LLM prompt payloads into system instructions and user context.
+- Main LLM now uses a dedicated system prompt, with different user payloads for normal and clarification flows.
+ada
+### Fixed
+- `tools_executor` now forwards only intent-matched `RuntimeMetadata.content` to tool retrieval.
+
 ## [0.2.7] - 2026-06-17
 
 ### bugfix

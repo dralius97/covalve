@@ -1,6 +1,7 @@
 from covalve.runtime.models.context import ArgsCtx, ReturnSchema, OutputSchema 
 from covalve.runtime.models.io import OutputStatus, MainLLMResponse, GenerateCondition
 from covalve.infrastructure.contract import InfrastructureRegistry
+from covalve.runtime.prompt_base.prompt import Prompt
 
 def factory_main_llm(deps: InfrastructureRegistry):
     if deps.llm is None:
@@ -32,57 +33,56 @@ def factory_main_llm(deps: InfrastructureRegistry):
         tools_context = _get_context_tools(copy_context, ctx.schema_colls)
         is_rejected = True if copy_context.guardrail_rejection else False
         generate_condition = GenerateCondition(
-            is_clarification=copy_context.is_clarification, 
-            is_rejected=is_rejected)
-        context_payload = f"""
+            is_clarification=copy_context.is_clarification,
+            is_rejected=is_rejected
+        )
 
-            ## Data Hasil Query
-            {tools_context}
-
-            ## Previous Conversation
-            {copy_context.background}
-
-            ## Intent Analysis
-            {[unit.model_dump() for unit in copy_context.metadata.content] if copy_context.metadata else []}
-
-            ## Question
-            {copy_context.query}
-
-            ## Current Date
-            {copy_context.current_time.strftime('%Y-%m-%d')}
-        """ 
+        system = Prompt.get_main_llm_system()
 
         if copy_context.is_clarification:
             clarification_section = f"## Clarification Context\n{copy_context.fallback_content}" if copy_context.fallback_content else ""
             guardrail_section = f"## Out Of Context Reason\n{copy_context.guardrail_rejection}" if copy_context.guardrail_rejection else ""
-            context_payload = f"""
+            user = f"""
+                ## Previous Conversation
+                {copy_context.background}
 
-            ## Previous Conversation
-            {copy_context.background}
+                {clarification_section}
 
-            {clarification_section}
+                {guardrail_section}
 
-            {guardrail_section}
-            
-            ## Question
-            {copy_context.query}
+                ## Question
+                {copy_context.query}
 
-            ## Current Date
-            {copy_context.current_time.strftime('%Y-%m-%d')}
+                ## Current Date
+                {copy_context.current_time.strftime('%Y-%m-%d')}
+                """
+        else:
+            user = f"""
+                ## Query Result Data
+                {tools_context}
 
-            """
+                ## Previous Conversation
+                {copy_context.background}
 
-        result_from_llm: MainLLMResponse = await llm.generate(context_payload, generate_condition)
+                ## Intent Analysis
+                {[unit.model_dump() for unit in copy_context.metadata.content] if copy_context.metadata else []}
+
+                ## Question
+                {copy_context.query}
+
+                ## Current Date
+                {copy_context.current_time.strftime('%Y-%m-%d')}
+                """
+
+        result_from_llm: MainLLMResponse = await llm.generate(system, user, generate_condition)
         copy_context.summarize = result_from_llm.summarize
 
-        result = OutputSchema(
+        copy_context.response = OutputSchema(
             text=result_from_llm.text,
-            attachment= None,
+            attachment=None,
             status=OutputStatus.CLARIFICATION if copy_context.is_clarification else OutputStatus.SUCCESS,
             traceId=copy_context.traceId
         )
 
-        copy_context.response = result
         return ReturnSchema(event="NEXT", context=copy_context)
     return handle_main_llm
-

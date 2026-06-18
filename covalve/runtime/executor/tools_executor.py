@@ -45,7 +45,10 @@ def factory_execute_tools(deps:InfrastructureRegistry):
                         copy_context.metadata.content,
                         tools_schema
                     ),
-                    content=copy_context.metadata.content
+                    content=[
+                        unit for unit in copy_context.metadata.content
+                        if unit.intent in tools_schema[tool["name"]]["intent"]
+                    ]
                 )) for tool in tools_to_run
             ], return_exceptions=True)
             for tool, result in zip(tools_to_run, results):

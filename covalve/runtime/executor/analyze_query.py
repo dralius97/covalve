@@ -13,24 +13,23 @@ def factory_analyzer(deps: InfrastructureRegistry):
         copy_context = ctx.context.model_copy(deep=True)
         prev_summarize = copy_context.background.summarize if copy_context.background else ""
         prev_conv = [conv.model_dump(exclude={'data'}) for conv in copy_context.background.conversation] if copy_context.background else []
-        context_payload = f"""
-            {Prompt.get_analyze_prompt()}
-
-            ## Summarize previous conversation
-            {prev_summarize}
-
-            ## Previous Conversation
-            {prev_conv}
-
-            ## Current Query
-            {copy_context.query}
-
-            ## Current Date
-            {copy_context.current_time.strftime('%Y-%m-%d')}
+        system = Prompt.get_analyze_prompt()  # instruksi + schema
+        user = f"""
+        ## Summarize previous conversation
+        {prev_summarize}
+        
+        ## Previous Conversation  
+        {prev_conv}
+        
+        ## Current Query
+        {copy_context.query}
+        
+        ## Current Date
+        {copy_context.current_time.strftime('%Y-%m-%d')}
         """
 
         try:
-            metadata = await llm.analyze(context_payload)
+            metadata = await llm.analyze(system=system, user=user)
             copy_context.metadata = RuntimeMetadata.model_validate(metadata)
         except (ValidationError, json.JSONDecodeError) as e:
             copy_context.error = {"type": "PARSE_ERROR", "detail": str(e)}
