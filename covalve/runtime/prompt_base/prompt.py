@@ -1,4 +1,5 @@
 from covalve.runtime.models.metadata import RuntimeMetadata
+from covalve.runtime.models.io import MainLLMResponse
 import json
 from pathlib import Path
 
@@ -22,6 +23,7 @@ class BasePrompt:
 
     def init(self):
         analyzer_schema = RuntimeMetadata.model_json_schema()
+        main_llm_schema = MainLLMResponse.model_json_schema()
         with open(self.BASE_DIR / 'query_analyze_prompt.txt') as f:
             _base_prompt = f.read() 
 
@@ -32,6 +34,13 @@ class BasePrompt:
             Respond ONLY in JSON matching this exact schema, no preamble, no markdown fences:
             {json.dumps(analyzer_schema, indent=2)}
             """
+        self._main_llm = f"""
+            {_MAIN_LLM_SYSTEM}
+
+            ## Output Schema
+            Respond ONLY in JSON matching this exact schema, no preamble, no markdown fences:
+            {json.dumps(main_llm_schema, indent=2)}
+        """
         
     def get_analyze_prompt(self) -> str:
         analyzer:str = self._analyzer
