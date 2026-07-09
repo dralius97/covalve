@@ -2,19 +2,16 @@ from pydantic import BaseModel
 from typing import Optional, Any
 from enum import Enum
 from covalve.runtime.models.metadata import ContentUnit
+from covalve.runtime.models.infra import ContentBlock
 
 class OutputStatus(str, Enum):
     SUCCESS = "success"
     ERROR = "error"
     CLARIFICATION = "clarification"
 
-class AttachmentUnit(BaseModel):
-    type: str
-    data: str
-
 class OutputSchema(BaseModel):
     text: str
-    attachment: Optional[list[AttachmentUnit]] = None
+    attachment: Optional[list[ContentBlock]] = None
     status: OutputStatus
     traceId: str
 

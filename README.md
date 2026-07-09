@@ -115,7 +115,8 @@ EXECUTE_TOOLS --> MAIN_LLM : NEXT
 EXECUTE_TOOLS --> ERROR_COUNTER : INTERNAL_ERROR
 FALLBACK --> MAIN_LLM : NEXT
 INTERNAL_SERVER_ERROR --> SAVE_DATA_TO_PERSISTENCE : NEXT
-MAIN_LLM --> SAVE_DATA_TO_PERSISTENCE : NEXT
+MAIN_LLM --> ATTACHMENT_ASSEMBLER : NEXT
+ATTACHMENT_ASSEMBLER --> SAVE_DATA_TO_PERSISTENCE : NEXT
 SAVE_DATA_TO_PERSISTENCE --> [OUTPUT] : NEXT
 ```
 
@@ -129,6 +130,7 @@ SAVE_DATA_TO_PERSISTENCE --> [OUTPUT] : NEXT
 | `TOOLS_MAPPER` | Maps intents to tools based on tools_schema |
 | `EXECUTE_TOOLS` | Executes tools in priority order, parallel within same priority |
 | `MAIN_LLM` | Synthesizes tool results into a final response |
+| `ATTACHMENT_ASSEMBLER` | Extracts non-text content blocks (image, audio, resource) from `tools_data` into `response.attachment` |
 | `ERROR_COUNTER` | Tracks retry attempts, routes to retry or timeout |
 | `INTERNAL_SERVER_ERROR` | Prepares error response when retries are exhausted |
 | `SAVE_DATA_TO_PERSISTENCE` | Saves conversation data, cleans up cache keys |
@@ -323,10 +325,17 @@ Implement these abstract base classes to wire covalve to your infrastructure:
 ```python
 class OutputSchema(BaseModel):
     text: str
-    attachment: Optional[list[AttachmentUnit]]
+    attachment: Optional[list[ContentBlock]]
     status: OutputStatus          # success | error | clarification
     traceId: str
 ```
+
+`attachment` holds any non-text content block produced by tools during the
+pipeline run — populated automatically by `ATTACHMENT_ASSEMBLER`. `ContentBlock`
+is the same discriminated union used in `tools_data` (`ImageContent`,
+`AudioContent`, `EmbeddedResource`), so consumers get `mimeType` and other
+type-specific fields directly, with no separate attachment schema to keep
+in sync.
 
 ---
 

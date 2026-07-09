@@ -8,10 +8,13 @@ from covalve.runtime.executor.tools_mapper import factory_tools_mapper
 from covalve.runtime.executor.main_llm import factory_main_llm
 from covalve.runtime.executor.save_data import factory_save_data
 from covalve.runtime.executor.guardrail import factory_guardrails
+from covalve.runtime.executor.attachment_assembler import factory_attachment_assembler
+
 
 
 
 handlersRegistry = {
+    "ATTACHMENT_ASSEMBLER": factory_attachment_assembler,
     "RETRIEVE_PREVIOUS_CONVERSATION": factory_retrieve_memmory,
     "ANALYZE": factory_analyzer,
     "ERROR_COUNTER": factory_error_counter,

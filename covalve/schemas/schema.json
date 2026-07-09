@@ -4,52 +4,80 @@
   "states": {
     "RETRIEVE_PREVIOUS_CONVERSATION": {
       "transitions": {
-        "NEXT": { "to": "ANALYZE" }
+        "NEXT": {
+          "to": "ANALYZE"
+        }
       }
     },
     "ANALYZE": {
       "transitions": {
-        "NEXT": { "to": "TOOLS_MAPPER" },
-        "LOW_CONFIDENCE": { "to": "FALLBACK" },
-        "INTERNAL_ERROR": { "to": "ERROR_COUNTER" }
+        "NEXT": {
+          "to": "TOOLS_MAPPER"
+        },
+        "LOW_CONFIDENCE": {
+          "to": "FALLBACK"
+        },
+        "INTERNAL_ERROR": {
+          "to": "ERROR_COUNTER"
+        }
       }
     },
     "ERROR_COUNTER": {
       "transitions": {
-        "RETRY_ANALYZE": { "to": "ANALYZE" },
-        "RETRY_TOOLS": { "to": "EXECUTE_TOOLS" },
-        "RETRY_TIMES_OUT": { "to": "INTERNAL_SERVER_ERROR" }
+        "RETRY_ANALYZE": {
+          "to": "ANALYZE"
+        },
+        "RETRY_TOOLS": {
+          "to": "EXECUTE_TOOLS"
+        },
+        "RETRY_TIMES_OUT": {
+          "to": "INTERNAL_SERVER_ERROR"
+        }
       }
     },
     "INTERNAL_SERVER_ERROR": {
       "transitions": {
-        "NEXT": { "to": "SAVE_DATA_TO_PERSISTENCE" }
+        "NEXT": {
+          "to": "SAVE_DATA_TO_PERSISTENCE"
+        }
       }
     },
     "TOOLS_MAPPER": {
       "transitions": {
-        "NEXT": { "to": "EXECUTE_TOOLS" }
+        "NEXT": {
+          "to": "EXECUTE_TOOLS"
+        }
       }
     },
     "EXECUTE_TOOLS": {
       "transitions": {
-        "NEXT": { "to": "MAIN_LLM" },
-        "INTERNAL_ERROR": { "to": "ERROR_COUNTER" }
+        "NEXT": {
+          "to": "MAIN_LLM"
+        },
+        "INTERNAL_ERROR": {
+          "to": "ERROR_COUNTER"
+        }
       }
     },
     "FALLBACK": {
       "transitions": {
-        "NEXT": { "to": "MAIN_LLM" }
+        "NEXT": {
+          "to": "MAIN_LLM"
+        }
       }
     },
     "MAIN_LLM": {
       "transitions": {
-        "NEXT": { "to": "SAVE_DATA_TO_PERSISTENCE" }
+        "NEXT": {
+          "to": "ATTACHMENT_ASSEMBLER"
+        }
       }
     },
-    "SAVE_DATA_TO_PERSISTENCE": {
+    "ATTACHMENT_ASSEMBLER": {
       "transitions": {
-        "NEXT": { "to": "OUTPUT_TO_USER" }
+        "NEXT": {
+          "to": "SAVE_DATA_TO_PERSISTENCE"
+        }
       }
     }
   }

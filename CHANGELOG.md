@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.0] - 2026-07-09
+### Added
+- New native node `ATTACHMENT_ASSEMBLER`: extracts non-text `ContentBlock`s
+  (image, audio, resource) from `tools_data` into `response.attachment`,
+  decoupled from `MAIN_LLM` reasoning.
+
+### Changed
+- `OutputSchema.attachment` type changed from `Optional[list[AttachmentUnit]]`
+  to `Optional[list[ContentBlock]]`, reusing the same discriminated union as
+  `tools_data` instead of a separate, information-lossy attachment schema.
+
+### Removed
+- `AttachmentUnit` model (superseded by `ContentBlock`).
+
 ## [0.2.11] - 2026-07-09
 ### Changed
 - `ToolClientBase.retrieve` now receives the current `tools_data` payload so tool

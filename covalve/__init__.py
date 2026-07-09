@@ -1,4 +1,4 @@
-__version__= "0.2.11"
+__version__= "0.3.0"
 
 # entry point
 from covalve.runtime.pipeline import pipeline, base_schema
@@ -30,7 +30,6 @@ from covalve.runtime.hook.context import ReadOnlyContext
 from covalve.runtime.models.io import (
     OutputSchema,
     OutputStatus,
-    AttachmentUnit,
     MainLLMResponse,
     GenerateCondition,
     DataContent,
