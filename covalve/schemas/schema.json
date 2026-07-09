@@ -66,6 +66,13 @@
         }
       }
     },
+    "SAVE_DATA_TO_PERSISTENCE": {
+      "transitions": {
+        "NEXT": {
+          "to": "OUTPUT_TO_USER"
+        }
+      }
+    },
     "MAIN_LLM": {
       "transitions": {
         "NEXT": {

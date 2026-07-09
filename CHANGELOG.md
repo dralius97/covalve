@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.1] - 2026-07-09
+### Fix
+- restore missing SAVE_DATA_TO_PERSISTENCE state definition
+  Accidentally dropped while wiring in ATTACHMENT_ASSEMBLER, causing
+  validate_graph to fail — no path led back to FINAL (OUTPUT_TO_USER).
+
 ## [0.3.0] - 2026-07-09
 ### Added
 - New native node `ATTACHMENT_ASSEMBLER`: extracts non-text `ContentBlock`s
