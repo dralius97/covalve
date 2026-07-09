@@ -165,6 +165,7 @@ async def test_factory_execute_tools_collects_successful_results():
     context = make_pipeline_context(
         metadata=make_runtime_metadata(),
         tool_list={0: [{"name": "tool_a", "skippable": False}]},
+        tools_data={"previous_tool": [TextContent(type="text", text="previous output")]},
     )
     ctx = make_args_ctx(
         state="EXECUTE_TOOLS",
@@ -177,6 +178,9 @@ async def test_factory_execute_tools_collects_successful_results():
     assert result.event == "NEXT"
     assert result.context.tools_data["tool_a"][0].text == "tool output"
     assert result.context.executed_tools.success_tools == ["tool_a"]
+    assert client.calls[0][2] == {
+        "previous_tool": [TextContent(type="text", text="previous output")]
+    }
     assert_context_local_untouched(result.context)
 
 

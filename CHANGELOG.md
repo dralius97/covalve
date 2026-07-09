@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.2.11] - 2026-07-09
+### Changed
+- `ToolClientBase.retrieve` now receives the current `tools_data` payload so tool
+  clients can access outputs from previously executed tools.
+- `EXECUTE_TOOLS` now forwards `PipelineContext.tools_data` to tool retrieval.
+
+### Fixed
+- Updated execute-tools unit tests and test helper client to match the new
+  `ToolClientBase.retrieve` contract.
+
 ## [0.2.9] - 2026-06-18
 ### Changed
 - add MainLLMResponse schema to base prompt

@@ -247,10 +247,10 @@ class DummyGuardrail:
 class DummyToolClient:
     def __init__(self, response_map: dict[str, Any] | None = None):
         self.response_map = response_map or {}
-        self.calls: list[tuple[str, Any]] = []
+        self.calls: list[tuple[str, Any, dict[str, list[Any]]]] = []
 
-    async def retrieve(self, tool_name: str, metadata: Any):
-        self.calls.append((tool_name, metadata))
+    async def retrieve(self, tool_name: str, metadata: Any, tools_data: dict[str, list[Any]]):
+        self.calls.append((tool_name, metadata, tools_data.copy()))
         result = self.response_map.get(tool_name)
         if isinstance(result, Exception):
             raise result

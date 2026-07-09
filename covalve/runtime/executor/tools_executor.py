@@ -49,7 +49,7 @@ def factory_execute_tools(deps:InfrastructureRegistry):
                         unit for unit in copy_context.metadata.content
                         if unit.intent in tools_schema[tool["name"]]["intent"]
                     ]
-                )) for tool in tools_to_run
+                ), tools_data=copy_context.tools_data) for tool in tools_to_run
             ], return_exceptions=True)
             for tool, result in zip(tools_to_run, results):
                 if isinstance(result, BaseException):
